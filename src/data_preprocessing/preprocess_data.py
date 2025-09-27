@@ -102,7 +102,6 @@ def save_artifacts(
     """
     # Save processed data
     data_dir = "data/preprocessed"
-    os.makedirs(data_dir, exist_ok=True)
     logger.info(f"Saving processed data to {data_dir}")
 
     train_path = os.path.join(data_dir, "train_preprocessed.csv")
