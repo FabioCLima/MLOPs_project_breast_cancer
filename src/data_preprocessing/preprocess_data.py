@@ -84,8 +84,8 @@ def preprocess_data(
     )
     
     # Merge target back with processed features
-    train_processed = train_features_processed.assign(target=train_target)
-    test_processed = test_features_processed.assign(target=test_target)
+    train_processed = train_features_processed.assign(target=train_target.tolist())
+    test_processed = test_features_processed.assign(target=test_target.tolist())
     
     return train_processed, test_processed, imputer
 
