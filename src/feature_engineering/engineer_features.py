@@ -18,19 +18,19 @@ def load_preprocessed_data() -> tuple[pd.DataFrame, pd.DataFrame]:
     train_path = "data/preprocessed/train_preprocessed.csv"
     test_path = "data/preprocessed/test_preprocessed.csv"
     logger.info(f"Loading preprocessed data from {train_path} and {test_path}")
-    train_data = pd.read_csv(train_path)
-    test_data = pd.read_csv(test_path)
-    return train_data, test_data
+    train_preprocessed = pd.read_csv(train_path)
+    test_preprocessed = pd.read_csv(test_path)
+    return train_preprocessed, test_preprocessed
 
 
 def engineer_features(
-    train_data: pd.DataFrame, test_data: pd.DataFrame
+    train_preprocessed: pd.DataFrame, test_preprocessed: pd.DataFrame
 ) -> tuple[pd.DataFrame, pd.DataFrame, StandardScaler]:
     """Apply feature engineering transformations.
 
     Args:
-        train_data (pd.DataFrame): Training dataset
-        test_data (pd.DataFrame): Test dataset
+        train_preprocessed (pd.DataFrame): Training dataset
+        test_preprocessed (pd.DataFrame): Test dataset
 
     Returns:
         tuple containing:
@@ -39,35 +39,38 @@ def engineer_features(
             StandardScaler: Fitted scaler
     """
     logger.info("Engineering features...")
-    feature_columns = [col for col in train_data.columns if col != "target"]
+    feature_columns = [col for col in train_preprocessed.columns if col != "target"]
 
     scaler = StandardScaler()
-    train_data[feature_columns] = scaler.fit_transform(train_data[feature_columns])
-    test_data[feature_columns] = scaler.transform(test_data[feature_columns])
+    
+    train_processed = train_preprocessed.copy()
+    test_processed = test_preprocessed.copy()
 
-    return train_data, test_data, scaler
+    train_processed[feature_columns] = scaler.fit_transform(train_processed[feature_columns])
+    test_processed[feature_columns] = scaler.transform(test_processed[feature_columns])
+
+    return train_preprocessed, test_preprocessed, scaler
 
 
 def save_artifacts(
-    train_data: pd.DataFrame, test_data: pd.DataFrame, scaler: StandardScaler
+    train_preprocessed: pd.DataFrame, test_preprocessed: pd.DataFrame, scaler: StandardScaler
 ) -> None:
     """Save engineered features and scaler.
 
     Args:
-        train_data (pd.DataFrame): Engineered training data
-        test_data (pd.DataFrame): Engineered test data
+        train_preprocessed (pd.DataFrame): Engineered training data
+        test_preprocessed (pd.DataFrame): Engineered test data
         scaler (StandardScaler): Fitted scaler
     """
     # Save processed data
     output_dir = "data/processed"
-    os.makedirs(output_dir, exist_ok=True)
     logger.info(f"Saving engineered features to {output_dir}")
 
     train_path = os.path.join(output_dir, "train_processed.csv")
     test_path = os.path.join(output_dir, "test_processed.csv")
 
-    train_data.to_csv(train_path, index=False)
-    test_data.to_csv(test_path, index=False)
+    train_preprocessed.to_csv(train_path, index=False)
+    test_preprocessed.to_csv(test_path, index=False)
 
     # Save scaler
     scaler_path = os.path.join("artifacts", "[features]_scaler.joblib")
@@ -77,9 +80,9 @@ def save_artifacts(
 
 def main() -> None:
     """Main function to orchestrate feature engineering pipeline."""
-    train_data, test_data = load_preprocessed_data()
-    train_featured, test_featured, scaler = engineer_features(train_data, test_data)
-    save_artifacts(train_featured, test_featured, scaler)
+    train_preprocessed, test_preprocessed = load_preprocessed_data()
+    train_processed, test_processed, scaler = engineer_features(train_preprocessed, test_preprocessed)
+    save_artifacts(train_processed, test_processed, scaler)
     logger.info("Feature engineering completed")
 
 
