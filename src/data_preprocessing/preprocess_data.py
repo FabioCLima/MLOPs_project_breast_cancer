@@ -69,8 +69,8 @@ def preprocess_data(
     logger.info("Preprocessing data...")
     
     # Separate target column
-    train_target = train_data['target'].tolist()
-    test_target = test_data['target'].tolist()
+    train_target = train_data['target']
+    test_target = test_data['target']
     train_features = train_data.drop('target', axis=1)
     test_features = test_data.drop('target', axis=1)
     
