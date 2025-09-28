@@ -61,7 +61,7 @@ class ModelService:
         # Decode predictions
         y_decoded = self.target_encoder.inverse_transform(y_pred)
 
-        return pd.Series(y_decoded.ravel(), index=features.index)
+        return pd.DataFrame({"Prediction": y_decoded.ravel()}, index=features.index)
 
 
 def create_routes(app: Flask) -> None:
@@ -100,9 +100,7 @@ def create_routes(app: Flask) -> None:
             predictions = app.model_service.predict(features)
 
             # Format predictions for display
-            result = pd.DataFrame(
-                {"Sample": range(1, len(predictions) + 1), "Prediction": predictions}
-            ).to_string(index=False)
+            result = predictions.to_string()
 
             return render_template("index.html", predictions=result)
 
