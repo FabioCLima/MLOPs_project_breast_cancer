@@ -59,7 +59,7 @@ The project requires Python 3.12+ and the packages informed in `pyproject.toml`.
 1. Clone the repository:
 ```bash
 git clone <repository-url>
-cd iaexp
+cd mlops_project
 ```
 
 2. Install dependencies:
