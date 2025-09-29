@@ -49,17 +49,17 @@ def engineer_features(
     train_processed[feature_columns] = scaler.fit_transform(train_processed[feature_columns])
     test_processed[feature_columns] = scaler.transform(test_processed[feature_columns])
 
-    return train_preprocessed, test_preprocessed, scaler
+    return train_processed, test_processed, scaler
 
 
 def save_artifacts(
-    train_preprocessed: pd.DataFrame, test_preprocessed: pd.DataFrame, scaler: StandardScaler
+    train_processed: pd.DataFrame, test_processed: pd.DataFrame, scaler: StandardScaler
 ) -> None:
     """Save engineered features and scaler.
 
     Args:
-        train_preprocessed (pd.DataFrame): Engineered training data
-        test_preprocessed (pd.DataFrame): Engineered test data
+        train_processed (pd.DataFrame): Engineered training data
+        test_processed (pd.DataFrame): Engineered test data
         scaler (StandardScaler): Fitted scaler
     """
     # Save processed data
@@ -69,8 +69,8 @@ def save_artifacts(
     train_path = os.path.join(output_dir, "train_processed.csv")
     test_path = os.path.join(output_dir, "test_processed.csv")
 
-    train_preprocessed.to_csv(train_path, index=False)
-    test_preprocessed.to_csv(test_path, index=False)
+    train_processed.to_csv(train_path, index=False)
+    test_processed.to_csv(test_path, index=False)
 
     # Save scaler
     scaler_path = os.path.join("artifacts", "[features]_scaler.joblib")
