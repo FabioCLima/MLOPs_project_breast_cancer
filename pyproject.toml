@@ -24,6 +24,63 @@ where = ["."]
 [dependency-groups]
 dev = [
     "mypy>=1.19.1",
+    "pre-commit>=4.5.1",
     "pytest>=9.0.2",
     "ruff>=0.15.0",
 ]
+
+[tool.ruff]
+# Compatível com Python 3.12+
+target-version = "py312"
+line-length = 100
+
+# Diretórios a ignorar
+exclude = [
+    ".git",
+    ".venv",
+    "__pycache__",
+    "*.egg-info",
+    ".pytest_cache",
+    "data/",
+    "models/",
+    "artifacts/",
+    "logs/",
+]
+
+[tool.ruff.lint]
+# Regras ativadas (mais importantes para ML)
+select = [
+    "E",   # pycodestyle errors
+    "W",   # pycodestyle warnings
+    "F",   # pyflakes
+    "I",   # isort (organização de imports)
+    "N",   # pep8-naming
+    "UP",  # pyupgrade (moderniza código)
+    "B",   # flake8-bugbear (bugs comuns)
+    "C4",  # flake8-comprehensions
+    "DTZ", # flake8-datetimez
+    "T10", # flake8-debugger (remove debuggers)
+    "PL",  # pylint
+    "RUF", # Ruff-specific rules
+]
+
+# Regras ignoradas
+ignore = [
+    "E501",    # line too long (já controlado por line-length)
+    "PLR0913", # too many arguments (comum em ML)
+    "PLR2004", # magic value comparison (comum em ML)
+    "N803",    # argument name should be lowercase (X, y é padrão ML)
+    "N806",    # variable should be lowercase (X, y é padrão ML)
+]
+
+[tool.ruff.lint.per-file-ignores]
+# Testes podem ter imports não usados, etc
+"tests/**/*.py" = ["F401", "F811"]
+# __init__.py pode ter imports não usados (re-exports)
+"__init__.py" = ["F401"]
+
+[tool.ruff.format]
+# Use aspas duplas
+quote-style = "double"
+# Indentação com 4 espaços
+indent-style = "space"

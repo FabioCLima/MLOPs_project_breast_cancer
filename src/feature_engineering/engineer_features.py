@@ -5,7 +5,6 @@ import joblib
 import pandas as pd
 from sklearn.preprocessing import StandardScaler
 
-
 logger = logging.getLogger("src.feature_engineering.engineer_features")
 
 
@@ -42,7 +41,7 @@ def engineer_features(
     feature_columns = [col for col in train_preprocessed.columns if col != "target"]
 
     scaler = StandardScaler()
-    
+
     train_processed = train_preprocessed.copy()
     test_processed = test_preprocessed.copy()
 
@@ -81,7 +80,9 @@ def save_artifacts(
 def main() -> None:
     """Main function to orchestrate feature engineering pipeline."""
     train_preprocessed, test_preprocessed = load_preprocessed_data()
-    train_processed, test_processed, scaler = engineer_features(train_preprocessed, test_preprocessed)
+    train_processed, test_processed, scaler = engineer_features(
+        train_preprocessed, test_preprocessed
+    )
     save_artifacts(train_processed, test_processed, scaler)
     logger.info("Feature engineering completed")
 

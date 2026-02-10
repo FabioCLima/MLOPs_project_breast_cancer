@@ -24,13 +24,9 @@ class ModelService:
         models_dir = "models"
 
         # Define paths to the preprocessing artifacts
-        features_imputer_path = os.path.join(
-            artifacts_dir, "[features]_mean_imputer.joblib"
-        )
+        features_imputer_path = os.path.join(artifacts_dir, "[features]_mean_imputer.joblib")
         features_scaler_path = os.path.join(artifacts_dir, "[features]_scaler.joblib")
-        target_encoder_path = os.path.join(
-            artifacts_dir, "[target]_one_hot_encoder.joblib"
-        )
+        target_encoder_path = os.path.join(artifacts_dir, "[target]_one_hot_encoder.joblib")
         # Define path to the model file
         model_path = os.path.join(models_dir, "model.keras")
 
@@ -86,9 +82,7 @@ def create_routes(app: Flask) -> None:
 
             # Validate column names against breast cancer dataset
             expected_features = load_breast_cancer().feature_names
-            missing_cols = [
-                col for col in expected_features if col not in features.columns
-            ]
+            missing_cols = [col for col in expected_features if col not in features.columns]
             if missing_cols:
                 return render_template(
                     "index.html",
@@ -110,7 +104,7 @@ def create_routes(app: Flask) -> None:
             )  # Added exc_info for better logging
             return render_template(
                 "index.html",
-                error=f"Error processing file: {str(e)}",  # Ensure e is string
+                error=f"Error processing file: {e!s}",  # Ensure e is string
             )
 
 

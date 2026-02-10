@@ -6,9 +6,7 @@ from pathlib import Path
 from loguru import logger
 
 
-def setup_logger(
-    log_level: str = "INFO", log_to_file: bool = True, log_dir: str = "logs"
-) -> None:
+def setup_logger(log_level: str = "INFO", log_to_file: bool = True, log_dir: str = "logs") -> None:
     """
     Configura o Loguru para todo o projeto.
 

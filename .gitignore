@@ -38,3 +38,6 @@ metrics/*.json
 # OS
 .DS_Store
 Thumbs.db
+
+# Pre-commit
+.secrets.baseline

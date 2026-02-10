@@ -1,12 +1,11 @@
 import logging
 import os
-import yaml
 
 import joblib
 import pandas as pd
+import yaml
 from sklearn.impute import SimpleImputer
 from sklearn.model_selection import train_test_split
-
 
 logger = logging.getLogger("src.data_preprocessing.preprocess_data")
 
@@ -29,7 +28,7 @@ def load_params() -> dict[str, float | int]:
     Returns:
         dict[str, Any]: dictionary containing preprocessing parameters.
     """
-    with open("params.yaml", "r") as f:
+    with open("params.yaml") as f:
         params = yaml.safe_load(f)
     return params["preprocess_data"]
 
@@ -67,13 +66,13 @@ def preprocess_data(
             SimpleImputer: Fitted imputer
     """
     logger.info("Preprocessing data...")
-    
+
     # Separate target column
-    train_target = train_data['target']
-    test_target = test_data['target']
-    train_features = train_data.drop('target', axis=1)
-    test_features = test_data.drop('target', axis=1)
-    
+    train_target = train_data["target"]
+    test_target = test_data["target"]
+    train_features = train_data.drop("target", axis=1)
+    test_features = test_data.drop("target", axis=1)
+
     # Apply imputation
     imputer = SimpleImputer(strategy="mean")
     train_features_processed = pd.DataFrame(
@@ -82,11 +81,11 @@ def preprocess_data(
     test_features_processed = pd.DataFrame(
         imputer.transform(test_features), columns=test_features.columns
     )
-    
+
     # Merge target back with processed features
     train_processed = train_features_processed.assign(target=train_target.tolist())
     test_processed = test_features_processed.assign(target=test_target.tolist())
-    
+
     return train_processed, test_processed, imputer
 
 

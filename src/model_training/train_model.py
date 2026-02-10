@@ -34,7 +34,7 @@ def load_params() -> dict[str, float | int]:
     Returns:
         dict[str, int | float]: dictionary containing model hyperparameters.
     """
-    with open("params.yaml", "r") as f:
+    with open("params.yaml") as f:
         params = yaml.safe_load(f)
     return params["train"]
 
@@ -78,11 +78,7 @@ def create_model(
     """
     model = Sequential(
         [
-            Dense(
-                params["hidden_layer_1_neurons"],
-                activation="relu",
-                input_shape=(input_shape,)
-            ),
+            Dense(params["hidden_layer_1_neurons"], activation="relu", input_shape=(input_shape,)),
             Dropout(params["dropout_rate"]),
             Dense(
                 params["hidden_layer_2_neurons"],
@@ -95,9 +91,7 @@ def create_model(
 
     optimizer = Adam(learning_rate=params["learning_rate"])
 
-    model.compile(
-        optimizer=optimizer, loss="categorical_crossentropy", metrics=["accuracy"]
-    )
+    model.compile(optimizer=optimizer, loss="categorical_crossentropy", metrics=["accuracy"])
 
     return model
 
@@ -131,19 +125,15 @@ def train_model(train_data: pd.DataFrame, params: dict[str, int | float]) -> Non
         params (dict[str, int | float]): Model hyperparameters.
     """
     tf.keras.utils.set_random_seed(params.pop("random_seed"))
-    
+
     # Prepare the data
     X_train, y_train, encoder = prepare_data(train_data)
-    
+
     # Create the model
-    model = create_model(
-        input_shape=X_train.shape[1], num_classes=y_train.shape[1], params=params
-    )
+    model = create_model(input_shape=X_train.shape[1], num_classes=y_train.shape[1], params=params)
 
     # Early stopping to prevent overfitting
-    early_stopping = EarlyStopping(
-        monitor="val_loss", patience=10, restore_best_weights=True
-    )
+    early_stopping = EarlyStopping(monitor="val_loss", patience=10, restore_best_weights=True)
 
     # Train the model with validation split
     logger.info("Training model...")
@@ -157,12 +147,9 @@ def train_model(train_data: pd.DataFrame, params: dict[str, int | float]) -> Non
     )
 
     save_training_artifacts(model, encoder)
-    
+
     # Save training metrics to a file
-    metrics = {
-        metric: float(history.history[metric][-1]) 
-        for metric in history.history
-    }
+    metrics = {metric: float(history.history[metric][-1]) for metric in history.history}
     metrics_path = "metrics/training.json"
     with open(metrics_path, "w") as f:
         json.dump(metrics, f, indent=2)
