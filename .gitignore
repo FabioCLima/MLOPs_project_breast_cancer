@@ -1,0 +1,40 @@
+# Python
+__pycache__/
+*.py[cod]
+*.so
+.Python
+*.egg-info/
+
+# Virtual environment
+.venv/
+venv/
+env/
+
+# Data (geralmente não commitamos dados)
+data/raw/*.csv
+data/preprocessed/*.csv
+data/processed/*.csv
+
+# Models (modelos treinados são grandes)
+models/*.keras
+models/*.h5
+
+# Logs
+logs/
+*.log
+
+# Artifacts
+artifacts/*.joblib
+
+# Metrics
+metrics/*.json
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
