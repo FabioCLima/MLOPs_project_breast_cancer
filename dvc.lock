@@ -193,3 +193,36 @@ stages:
       hash: md5
       md5: dcb1429cd4ccada92a0ac0860483a2f4
       size: 1855
+  explain:
+    cmd: python -m src.model_evaluation.explain_model
+    deps:
+    - path: artifacts/mlflow_run_id.txt
+      hash: md5
+      md5: a6f66e20415e3927c63fe46d05150ab6
+      size: 32
+    - path: data/processed/test_processed.csv
+      hash: md5
+      md5: 2fcac676d25e161b97b5f5fe0b35865a
+      size: 67862
+    - path: data/processed/train_processed.csv
+      hash: md5
+      md5: 05db0127b75f10013917e5c52ae02ade
+      size: 215406
+    - path: data/processed/val_processed.csv
+      hash: md5
+      md5: 5ee9f40f2ffb0af687cc7145cfeea014
+      size: 54363
+    - path: models/model.keras
+      hash: md5
+      md5: c9667f243a126051cb7b029dd563be08
+      size: 79016
+    - path: src/model_evaluation/explain_model.py
+      hash: md5
+      md5: f20276833717d56bb486529c4875fde1
+      size: 5551
+    outs:
+    - path: metrics/explainability
+      hash: md5
+      md5: 4a8488a1be4582121a5a04909d8cbe32.dir
+      size: 127341
+      nfiles: 3

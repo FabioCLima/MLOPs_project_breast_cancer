@@ -61,6 +61,18 @@ stages:
       - metrics/training.json:
           cache: false
 
+  explain:
+    cmd: python -m src.model_evaluation.explain_model
+    deps:
+      - models/model.keras
+      - artifacts/mlflow_run_id.txt
+      - data/processed/train_processed.csv
+      - data/processed/val_processed.csv
+      - data/processed/test_processed.csv
+      - src/model_evaluation/explain_model.py
+    outs:
+      - metrics/explainability
+
   evaluate:
     cmd: python -m src.model_evaluation.evaluate_model
     deps:

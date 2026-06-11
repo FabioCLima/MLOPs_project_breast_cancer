@@ -24,5 +24,6 @@ O objetivo é que um(a) cientista de dados ou ML engineer júnior consiga ler o 
 | [09](fase2-item10-mlflow.md) | 10, 14 | MLflow: tracking, registry e gate de promoção por recall | 6, 7 |
 | [10](fase2-item11-baselines.md) | 11 | Baselines com CV estratificada: LR empata com o MLP | 6 |
 | [11](fase2-item12-avaliacao-clinica.md) | 12 | Threshold tuning na validação, curvas, calibração; o gate barrou um threshold ruim | 4, 6, 11 |
+| [12](fase2-item13-explicabilidade.md) | 13 | Permutation importance (LR + Keras); por que não SHAP | 5, 11 |
 
 *(o índice cresce conforme os itens são entregues — veja a sequência completa no [ROADMAP.md](../../ROADMAP.md))*
