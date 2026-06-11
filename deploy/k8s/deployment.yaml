@@ -1,0 +1,47 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: breast-cancer-api
+  labels:
+    app: breast-cancer-api
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: breast-cancer-api
+  template:
+    metadata:
+      labels:
+        app: breast-cancer-api
+    spec:
+      securityContext:
+        runAsNonRoot: true
+      containers:
+        - name: api
+          # Para teste local com kind: `kind load docker-image ml-classifier:dev`
+          image: ml-classifier:dev
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 5001
+          resources:
+            requests:
+              cpu: 250m
+              memory: 1Gi
+            limits:
+              cpu: "1"
+              memory: 2Gi
+          # Liveness: o processo está vivo? Reinicia o pod se travar.
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 5001
+            initialDelaySeconds: 60
+            periodSeconds: 15
+          # Readiness: pronto para receber tráfego? (modelo carregado)
+          # Enquanto falhar, o Service não roteia para este pod.
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 5001
+            initialDelaySeconds: 20
+            periodSeconds: 10

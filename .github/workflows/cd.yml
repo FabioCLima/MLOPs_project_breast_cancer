@@ -1,0 +1,64 @@
+name: CD — build, smoke test e publicação da imagem
+
+on:
+  push:
+    branches: [master]
+    tags: ["v*"]
+
+env:
+  IMAGE: ghcr.io/${{ github.repository_owner }}/breast-cancer-api
+
+jobs:
+  build-and-publish:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+
+      # A imagem de serving precisa dos artefatos do modelo:
+      # o CD treina do zero via DVC — o pipeline completo é o teste.
+      - name: Reproduce pipeline (train + evaluate)
+        run: |
+          uv sync --locked
+          uv run dvc repro
+
+      - name: Build image
+        run: docker build -t "$IMAGE:${{ github.sha }}" .
+
+      - name: Smoke test (/health e /predict)
+        run: |
+          docker run -d --rm --name smoke -p 5001:5001 "$IMAGE:${{ github.sha }}"
+          for i in $(seq 1 30); do
+            curl -sf localhost:5001/health && break
+            sleep 5
+          done
+          curl -sf localhost:5001/health | grep -q '"model_loaded":true'
+          curl -sf localhost:5001/metadata | grep -q '"decision_threshold"'
+          docker stop smoke
+
+      - name: Log in to GHCR
+        if: github.event_name == 'push'
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Push image
+        run: |
+          docker push "$IMAGE:${{ github.sha }}"
+          if [[ "${{ github.ref }}" == refs/tags/* ]]; then
+            TAG="${GITHUB_REF#refs/tags/}"
+            docker tag "$IMAGE:${{ github.sha }}" "$IMAGE:$TAG"
+            docker tag "$IMAGE:${{ github.sha }}" "$IMAGE:latest"
+            docker push "$IMAGE:$TAG"
+            docker push "$IMAGE:latest"
+          fi

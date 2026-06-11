@@ -27,5 +27,6 @@ O objetivo é que um(a) cientista de dados ou ML engineer júnior consiga ler o 
 | [12](fase2-item13-explicabilidade.md) | 13 | Permutation importance (LR + Keras); por que não SHAP | 5, 11 |
 | [13](fase3-item15-16-fastapi.md) | 15, 16 | FastAPI + Pydantic v2: factory, registry, threshold da avaliação, 11 testes de contrato | 7 |
 | [14](fase3-item17-estrategias-deploy.md) | 17 | Estratégias de deploy: recreate, blue-green, canary, shadow | 7, 9 |
+| [15](fase4-item18-21-docker-k8s-cd.md) | 18–21 | Docker multi-stage non-root, compose com MLflow+MinIO, K8s com probes, CD com smoke test | 7, 10 |
 
 *(o índice cresce conforme os itens são entregues — veja a sequência completa no [ROADMAP.md](../../ROADMAP.md))*

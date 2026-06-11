@@ -1,5 +1,6 @@
 """Configuração centralizada de logging usando Loguru."""
 
+import os
 import sys
 from pathlib import Path
 
@@ -9,16 +10,20 @@ from src.config.paths import LOGS_DIR
 
 
 def setup_logger(
-    log_level: str = "INFO", log_to_file: bool = True, log_dir: Path = LOGS_DIR
+    log_level: str = "INFO", log_to_file: bool | None = None, log_dir: Path = LOGS_DIR
 ) -> None:
     """
     Configura o Loguru para todo o projeto.
 
     Args:
         log_level: Nível de log (DEBUG, INFO, WARNING, ERROR, CRITICAL)
-        log_to_file: Se deve salvar logs em arquivo
+        log_to_file: Se deve salvar logs em arquivo. Default: env LOG_TO_FILE
+            (em containers, LOG_TO_FILE=false — logs vão só para stdout, e a
+            plataforma coleta; padrão 12-factor)
         log_dir: Diretório para salvar arquivos de log (default: LOGS_DIR do projeto)
     """
+    if log_to_file is None:
+        log_to_file = os.getenv("LOG_TO_FILE", "true").lower() != "false"
     # Remove handler padrão
     logger.remove()
 

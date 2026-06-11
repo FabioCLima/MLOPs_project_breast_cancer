@@ -1,11 +1,29 @@
-# Python
+# VCS e ambientes
 .git
+.venv
 .conda
-ml_classifier.egg-info
 __pycache__
+*.egg-info
+.pytest_cache
+.mypy_cache
 
-# Data
-data/**/*.csv
+# Dados (nunca entram na imagem de serving)
+data/
 
-# Metrics
-metrics/*.json
+# MLflow local
+mlruns/
+mlartifacts/
+mlflow.db
+
+# DVC cache
+.dvc/cache
+.dvc/tmp
+
+# Logs, docs e testes
+logs/
+docs/
+tests/
+
+# Métricas: só evaluation.json (threshold) entra na imagem
+metrics/*
+!metrics/evaluation.json
