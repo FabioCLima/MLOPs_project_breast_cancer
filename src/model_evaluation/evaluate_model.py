@@ -1,14 +1,13 @@
 import json
 import logging
 
-import joblib
-import numpy as np
 import pandas as pd
 import tensorflow as tf
 from sklearn.metrics import classification_report, confusion_matrix
-from sklearn.preprocessing import LabelEncoder
 
 logger = logging.getLogger("src.model_evaluation.evaluate_model")
+
+DECISION_THRESHOLD = 0.5
 
 
 def load_model() -> tf.keras.Model:
@@ -20,17 +19,6 @@ def load_model() -> tf.keras.Model:
     model_path = "models/model.keras"
     model = tf.keras.models.load_model(model_path)
     return model
-
-
-def load_encoder() -> LabelEncoder:
-    """Load the label encoder from disk.
-
-    Returns:
-        LabelEncoder: Loaded label encoder.
-    """
-    encoder_path = "artifacts/[target]_one_hot_encoder.joblib"
-    encoder = joblib.load(encoder_path)
-    return encoder
 
 
 def load_test_data() -> tuple[pd.DataFrame, pd.Series]:
@@ -45,32 +33,38 @@ def load_test_data() -> tuple[pd.DataFrame, pd.Series]:
     logger.info(f"Loading test data from {data_path}")
     data = pd.read_csv(data_path)
     X = data.drop("target", axis=1)
-    y = data["target"]
+    y = data["target"].astype(int)
     return X, y
 
 
-def evaluate_model(
-    model: tf.keras.Model, encoder: LabelEncoder, X: pd.DataFrame, y_true: pd.Series
-) -> None:
+def evaluate_model(model: tf.keras.Model, X: pd.DataFrame, y_true: pd.Series) -> None:
     """Evaluate the model and generate performance metrics.
 
     Args:
         model (tf.keras.Model): Trained Keras model.
-        encoder (LabelEncoder): Fitted label encoder.
         X (pd.DataFrame): Test features.
         y_true (pd.Series): True labels.
     """
-    # Generate model predictions
-    y_pred_proba = model.predict(X)
-    y_pred = np.argmax(y_pred_proba, axis=1)
+    # Generate model predictions (sigmoid probability of class 1 = benign)
+    y_pred_proba = model.predict(X).ravel()
+    y_pred = (y_pred_proba >= DECISION_THRESHOLD).astype(int)
 
     # Calculate evaluation metrics
-    report = classification_report(y_true, y_pred, output_dict=True)
+    report = classification_report(
+        y_true, y_pred, target_names=["malignant", "benign"], output_dict=True
+    )
     cm = confusion_matrix(y_true, y_pred).tolist()
-    evaluation = {"classification_report": report, "confusion_matrix": cm}
+    evaluation = {
+        "decision_threshold": DECISION_THRESHOLD,
+        "classification_report": report,
+        "confusion_matrix": cm,
+    }
 
     # Log metrics
-    logger.info(f"Classification Report:\n{classification_report(y_true, y_pred)}")
+    logger.info(
+        "Classification Report:\n"
+        f"{classification_report(y_true, y_pred, target_names=['malignant', 'benign'])}"
+    )
     evaluation_path = "metrics/evaluation.json"
     with open(evaluation_path, "w") as f:
         json.dump(evaluation, f, indent=2)
@@ -79,9 +73,8 @@ def evaluate_model(
 def main() -> None:
     """Main function to orchestrate the model evaluation process."""
     model = load_model()
-    encoder = load_encoder()
     X, y = load_test_data()
-    evaluate_model(model, encoder, X, y)
+    evaluate_model(model, X, y)
     logger.info("Model evaluation completed")
 
 

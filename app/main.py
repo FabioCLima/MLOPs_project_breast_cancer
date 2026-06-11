@@ -26,14 +26,12 @@ class ModelService:
         # Define paths to the preprocessing artifacts
         features_imputer_path = os.path.join(artifacts_dir, "[features]_mean_imputer.joblib")
         features_scaler_path = os.path.join(artifacts_dir, "[features]_scaler.joblib")
-        target_encoder_path = os.path.join(artifacts_dir, "[target]_one_hot_encoder.joblib")
         # Define path to the model file
         model_path = os.path.join(models_dir, "model.keras")
 
         # Load all required artifacts
         self.features_imputer = joblib.load(features_imputer_path)
         self.features_scaler = joblib.load(features_scaler_path)
-        self.target_encoder = joblib.load(target_encoder_path)
         self.model = load_model(model_path)
 
         logger.info("Successfully loaded all artifacts")
@@ -51,13 +49,19 @@ class ModelService:
         X_imputed = self.features_imputer.transform(features)
         X_scaled = self.features_scaler.transform(X_imputed)
 
-        # Get model predictions
-        y_pred = self.model.predict(X_scaled)
+        # Sigmoid probability of class 1 (benign); explicit threshold decision
+        y_pred_proba = self.model.predict(X_scaled).ravel()
+        y_pred = (y_pred_proba >= 0.5).astype(int)
+        labels = pd.Series(y_pred, index=features.index).map({0: "malignant", 1: "benign"})
 
-        # Decode predictions
-        y_decoded = self.target_encoder.inverse_transform(y_pred)
-
-        return pd.DataFrame({"Prediction": y_decoded.ravel()}, index=features.index)
+        return pd.DataFrame(
+            {
+                "Prediction": y_pred,
+                "Label": labels,
+                "Probability (benign)": y_pred_proba.round(4),
+            },
+            index=features.index,
+        )
 
 
 def create_routes(app: Flask) -> None:

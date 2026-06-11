@@ -9,4 +9,5 @@ train:
 
 preprocess_data:
   test_size: 0.2
+  val_size: 0.2
   random_seed: 42

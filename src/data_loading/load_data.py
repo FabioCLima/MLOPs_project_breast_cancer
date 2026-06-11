@@ -14,7 +14,7 @@ def fetch_data() -> pd.DataFrame:
         pd.DataFrame: DataFrame containing the breast cancer data with features and target
     """
     logger.info("Fetching data...")
-    dataset: Bunch = load_breast_cancer()  # type: ignore[assignement]
+    dataset: Bunch = load_breast_cancer()  # type: ignore[assignment]
 
     # Features columns
     data = pd.DataFrame(data=dataset.data, columns=dataset.feature_names)

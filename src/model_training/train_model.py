@@ -2,30 +2,30 @@ import json
 import logging
 import os
 
-import joblib
 import numpy as np
 import pandas as pd
 import tensorflow as tf
 import yaml
-from sklearn.preprocessing import OneHotEncoder
 from tensorflow.keras.callbacks import EarlyStopping
-from tensorflow.keras.layers import Dense, Dropout
+from tensorflow.keras.layers import Dense, Dropout, Input
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.optimizers import Adam
 
 logger = logging.getLogger("src.model_training.train_model")
 
 
-def load_data() -> pd.DataFrame:
-    """Load the feature-engineered training data.
+def load_data() -> tuple[pd.DataFrame, pd.DataFrame]:
+    """Load the feature-engineered train and validation data.
 
     Returns:
-        pd.DataFrame: A dataframe containing the training data.
+        tuple[pd.DataFrame, pd.DataFrame]: Train and validation datasets.
     """
     train_path = "data/processed/train_processed.csv"
-    logger.info(f"Loading feature data from {train_path}")
+    val_path = "data/processed/val_processed.csv"
+    logger.info(f"Loading feature data from {train_path} and {val_path}")
     train_data = pd.read_csv(train_path)
-    return train_data
+    val_data = pd.read_csv(val_path)
+    return train_data, val_data
 
 
 def load_params() -> dict[str, float | int]:
@@ -39,38 +39,27 @@ def load_params() -> dict[str, float | int]:
     return params["train"]
 
 
-def prepare_data(train_data: pd.DataFrame) -> tuple[pd.DataFrame, np.ndarray, OneHotEncoder]:
-    """Prepare data for neural network training by separating features and target, and encoding labels.
+def prepare_data(data: pd.DataFrame) -> tuple[pd.DataFrame, pd.Series]:
+    """Separate features and binary target.
 
     Args:
-        train_data (pd.DataFrame): Training dataset.
-        test_data (pd.DataFrame): Test dataset.
+        data (pd.DataFrame): Dataset with a `target` column.
 
     Returns:
         tuple containing:
-            pd.DataFrame: Training features
-            np.ndarray: Encoded training labels
-            OneHotEncoder: Fitted label encoder
+            pd.DataFrame: Features
+            pd.Series: Binary labels (0/1)
     """
-    # Separate features and target for train data
-    X_train = train_data.drop("target", axis=1)
-    y_train = train_data["target"]
-
-    # One-hot encode the target variable
-    encoder = OneHotEncoder(sparse_output=False)
-    y_train_encoded = encoder.fit_transform(y_train.values.reshape(-1, 1))
-
-    return X_train, y_train_encoded, encoder
+    X = data.drop("target", axis=1)
+    y = data["target"].astype(int)
+    return X, y
 
 
-def create_model(
-    input_shape: int, num_classes: int, params: dict[str, int | float]
-) -> tf.keras.Model:
-    """Create a Keras Dense Neural Network model.
+def create_model(input_shape: int, params: dict[str, int | float]) -> tf.keras.Model:
+    """Create a Keras binary classifier (MLP with sigmoid output).
 
     Args:
         input_shape (int): Number of input features.
-        num_classes (int): Number of target classes.
         params (dict[str, int | float]): Model hyperparameters.
 
     Returns:
@@ -78,88 +67,84 @@ def create_model(
     """
     model = Sequential(
         [
-            Dense(params["hidden_layer_1_neurons"], activation="relu", input_shape=(input_shape,)),
+            Input(shape=(input_shape,)),
+            Dense(params["hidden_layer_1_neurons"], activation="relu"),
             Dropout(params["dropout_rate"]),
-            Dense(
-                params["hidden_layer_2_neurons"],
-                activation="relu",
-            ),
+            Dense(params["hidden_layer_2_neurons"], activation="relu"),
             Dropout(params["dropout_rate"]),
-            Dense(num_classes, activation="softmax"),
+            Dense(1, activation="sigmoid"),
         ]
     )
 
     optimizer = Adam(learning_rate=params["learning_rate"])
 
-    model.compile(optimizer=optimizer, loss="categorical_crossentropy", metrics=["accuracy"])
+    model.compile(optimizer=optimizer, loss="binary_crossentropy", metrics=["accuracy"])
 
     return model
 
 
-def save_training_artifacts(model: tf.keras.Model, encoder: OneHotEncoder) -> None:
-    """Save model artifacts to disk.
+def save_training_artifacts(model: tf.keras.Model) -> None:
+    """Save the trained model to disk.
 
     Args:
         model (tf.keras.Model): Trained Keras model.
-        encoder (OneHotEncoder): Fitted label encoder.
     """
-    artifacts_dir = "artifacts"
-    models_dir = "models"
-    model_path = os.path.join(models_dir, "model.keras")
-    encoder_path = os.path.join(artifacts_dir, "[target]_one_hot_encoder.joblib")
-
-    # Save the model
+    model_path = os.path.join("models", "model.keras")
     logger.info(f"Saving model to {model_path}")
     model.save(model_path)
 
-    # Save the encoder for inference
-    logger.info(f"Saving encoder to {encoder_path}")
-    joblib.dump(encoder, encoder_path)
 
-
-def train_model(train_data: pd.DataFrame, params: dict[str, int | float]) -> None:
-    """Train a Keras model, logging metrics and artifacts with MLflow.
+def train_model(
+    train_data: pd.DataFrame, val_data: pd.DataFrame, params: dict[str, int | float]
+) -> None:
+    """Train a Keras model with an explicit, leakage-free validation set.
 
     Args:
         train_data (pd.DataFrame): Training dataset.
+        val_data (pd.DataFrame): Validation dataset (held out before any transformer fit).
         params (dict[str, int | float]): Model hyperparameters.
     """
-    tf.keras.utils.set_random_seed(params.pop("random_seed"))
+    tf.keras.utils.set_random_seed(int(params["random_seed"]))
 
     # Prepare the data
-    X_train, y_train, encoder = prepare_data(train_data)
+    X_train, y_train = prepare_data(train_data)
+    X_val, y_val = prepare_data(val_data)
 
     # Create the model
-    model = create_model(input_shape=X_train.shape[1], num_classes=y_train.shape[1], params=params)
+    model = create_model(input_shape=X_train.shape[1], params=params)
 
     # Early stopping to prevent overfitting
     early_stopping = EarlyStopping(monitor="val_loss", patience=10, restore_best_weights=True)
 
-    # Train the model with validation split
+    # Train the model with the explicit validation set
     logger.info("Training model...")
     history = model.fit(
         X_train,
         y_train,
-        validation_split=0.2,
+        validation_data=(X_val, y_val),
         epochs=params["epochs"],
         batch_size=params["batch_size"],
         callbacks=[early_stopping],
     )
 
-    save_training_artifacts(model, encoder)
+    save_training_artifacts(model)
 
-    # Save training metrics to a file
-    metrics = {metric: float(history.history[metric][-1]) for metric in history.history}
+    # Report metrics from the best epoch — the one whose weights were restored —
+    # so the saved model and the reported metrics refer to the same state.
+    best_epoch = int(np.argmin(history.history["val_loss"]))
+    metrics = {metric: float(values[best_epoch]) for metric, values in history.history.items()}
+    metrics["best_epoch"] = best_epoch
     metrics_path = "metrics/training.json"
     with open(metrics_path, "w") as f:
         json.dump(metrics, f, indent=2)
+    logger.info(f"Best epoch: {best_epoch} | val_loss: {metrics['val_loss']:.4f}")
 
 
 def main() -> None:
     """Main function to orchestrate the model training process."""
-    train_data = load_data()
+    train_data, val_data = load_data()
     params = load_params()
-    train_model(train_data, params)
+    train_model(train_data, val_data, params)
     logger.info("Model training completed")
 
 

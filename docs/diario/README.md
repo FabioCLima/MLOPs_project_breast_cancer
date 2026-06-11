@@ -14,5 +14,6 @@ O objetivo é que um(a) cientista de dados ou ML engineer júnior consiga ler o 
 | Doc | Item do backlog | Tema | Capítulo (Chip Huyen) |
 |-----|----------------|------|----------------------|
 | [01](fase0-item01-runtime-python.md) | 1 | Runtime Python reprodutível | 10 |
+| [02](fase0-item02-03-leakage-e-corretude.md) | 2, 3 | Data leakage no validation split; estratificação; best epoch; sigmoid binária; teste de leakage | 4, 5, 6 |
 
 *(o índice cresce conforme os itens são entregues — veja a sequência completa no [ROADMAP.md](../../ROADMAP.md))*
