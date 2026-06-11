@@ -18,5 +18,6 @@ O objetivo é que um(a) cientista de dados ou ML engineer júnior consiga ler o 
 | [03](fase0-item04-paths-e-params.md) | 4 | Paths e params centralizados; independência de cwd | 2, 10 |
 | [04](fase0-item05-logging.md) | 5 | Logging único com loguru; observabilidade camada zero | 8, 10 |
 | [05](fase1-item06-dvc.md) | 6 | Pipeline DVC: grafo explícito, repro incremental, proveniência | 3, 6, 10 |
+| [06](fase1-item07-pandera.md) | 7 | Contrato de dados Pandera nas fronteiras do pipeline | 4, 8 |
 
 *(o índice cresce conforme os itens são entregues — veja a sequência completa no [ROADMAP.md](../../ROADMAP.md))*

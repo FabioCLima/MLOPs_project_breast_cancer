@@ -17,6 +17,7 @@ from src.config.paths import (
     TRAINING_METRICS_PATH,
     VAL_PROCESSED_PATH,
 )
+from src.data_validation.schemas import PROCESSED_SCHEMA, validate
 
 
 def load_data() -> tuple[pd.DataFrame, pd.DataFrame]:
@@ -26,8 +27,8 @@ def load_data() -> tuple[pd.DataFrame, pd.DataFrame]:
         tuple[pd.DataFrame, pd.DataFrame]: Train and validation datasets.
     """
     logger.info(f"Loading feature data from {TRAIN_PROCESSED_PATH} and {VAL_PROCESSED_PATH}")
-    train_data = pd.read_csv(TRAIN_PROCESSED_PATH)
-    val_data = pd.read_csv(VAL_PROCESSED_PATH)
+    train_data = validate(pd.read_csv(TRAIN_PROCESSED_PATH), PROCESSED_SCHEMA, stage="train")
+    val_data = validate(pd.read_csv(VAL_PROCESSED_PATH), PROCESSED_SCHEMA, stage="train")
     return train_data, val_data
 
 

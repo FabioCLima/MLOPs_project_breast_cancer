@@ -13,6 +13,7 @@ from src.config.paths import (
     TRAIN_PREPROCESSED_PATH,
     VAL_PREPROCESSED_PATH,
 )
+from src.data_validation.schemas import RAW_SCHEMA, validate
 
 
 def load_data() -> pd.DataFrame:
@@ -23,7 +24,7 @@ def load_data() -> pd.DataFrame:
     """
     logger.info(f"Loading raw data from {RAW_DATA_PATH}")
     data = pd.read_csv(RAW_DATA_PATH)
-    return data
+    return validate(data, RAW_SCHEMA, stage="preprocess")
 
 
 def split_data(data: pd.DataFrame) -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:

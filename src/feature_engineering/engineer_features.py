@@ -13,6 +13,7 @@ from src.config.paths import (
     VAL_PREPROCESSED_PATH,
     VAL_PROCESSED_PATH,
 )
+from src.data_validation.schemas import PREPROCESSED_SCHEMA, validate
 
 
 def load_preprocessed_data() -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
@@ -22,9 +23,9 @@ def load_preprocessed_data() -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
         tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]: Train, validation and test datasets
     """
     logger.info(f"Loading preprocessed data from {TRAIN_PREPROCESSED_PATH.parent}")
-    train = pd.read_csv(TRAIN_PREPROCESSED_PATH)
-    val = pd.read_csv(VAL_PREPROCESSED_PATH)
-    test = pd.read_csv(TEST_PREPROCESSED_PATH)
+    train = validate(pd.read_csv(TRAIN_PREPROCESSED_PATH), PREPROCESSED_SCHEMA, stage="features")
+    val = validate(pd.read_csv(VAL_PREPROCESSED_PATH), PREPROCESSED_SCHEMA, stage="features")
+    test = validate(pd.read_csv(TEST_PREPROCESSED_PATH), PREPROCESSED_SCHEMA, stage="features")
     return train, val, test
 
 

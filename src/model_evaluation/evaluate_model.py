@@ -7,6 +7,7 @@ from sklearn.metrics import classification_report, confusion_matrix
 
 from src.config.logging_config import setup_logger
 from src.config.paths import EVALUATION_METRICS_PATH, MODEL_PATH, TEST_PROCESSED_PATH
+from src.data_validation.schemas import PROCESSED_SCHEMA, validate
 
 DECISION_THRESHOLD = 0.5
 
@@ -30,7 +31,7 @@ def load_test_data() -> tuple[pd.DataFrame, pd.Series]:
             pd.Series: Test labels
     """
     logger.info(f"Loading test data from {TEST_PROCESSED_PATH}")
-    data = pd.read_csv(TEST_PROCESSED_PATH)
+    data = validate(pd.read_csv(TEST_PROCESSED_PATH), PROCESSED_SCHEMA, stage="evaluate")
     X = data.drop("target", axis=1)
     y = data["target"].astype(int)
     return X, y
