@@ -12,14 +12,18 @@ Endpoints:
 
 import io
 import json
+import time
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 
 import pandas as pd
 from fastapi import FastAPI, HTTPException, Request, UploadFile
 from loguru import logger
+from prometheus_client import make_asgi_app
 
+from app.metrics import PREDICTED_PROBABILITY, PREDICTIONS_TOTAL, REQUEST_LATENCY
 from app.model_service import ModelService
+from app.prediction_logger import log_predictions
 from app.schemas import (
     HealthResponse,
     MetadataResponse,
@@ -53,6 +57,9 @@ def create_app(model_service: ModelService | None = None) -> FastAPI:
         version="1.0.0",
         lifespan=lifespan,
     )
+
+    # Métricas Prometheus (formato OpenMetrics) em /metrics
+    app.mount("/metrics", make_asgi_app())
 
     @app.get("/health", response_model=HealthResponse)
     def health(request: Request) -> HealthResponse:
@@ -88,8 +95,7 @@ def create_app(model_service: ModelService | None = None) -> FastAPI:
         features = pd.DataFrame(
             [record.model_dump(by_alias=True) for record in payload.records]  # type: ignore[attr-defined]
         )[FEATURE_COLUMNS]
-        predictions = service.predict(features)
-        return _to_response(service, predictions)
+        return _predict_and_observe(service, features, endpoint="/predict")
 
     @app.post("/predict/batch", response_model=PredictionResponse)
     async def predict_batch(request: Request, file: UploadFile) -> PredictionResponse:
@@ -109,10 +115,33 @@ def create_app(model_service: ModelService | None = None) -> FastAPI:
                 status_code=400, detail=f"Colunas obrigatórias ausentes: {', '.join(missing)}"
             )
 
-        predictions = service.predict(features[FEATURE_COLUMNS])
-        return _to_response(service, predictions)
+        return _predict_and_observe(service, features[FEATURE_COLUMNS], endpoint="/predict/batch")
 
     return app
+
+
+def _predict_and_observe(
+    service: ModelService, features: pd.DataFrame, endpoint: str
+) -> PredictionResponse:
+    """Prediz, mede latência, registra log estruturado e métricas Prometheus."""
+    start = time.perf_counter()
+    predictions = service.predict(features)
+    latency_s = time.perf_counter() - start
+
+    REQUEST_LATENCY.labels(endpoint=endpoint).observe(latency_s)
+    for _, row in predictions.iterrows():
+        PREDICTIONS_TOTAL.labels(label=row["Label"], model_version=service.model_version).inc()
+        PREDICTED_PROBABILITY.observe(float(row["Probability (benign)"]))
+
+    log_predictions(
+        features=features,
+        predictions=predictions,
+        model_version=service.model_version,
+        decision_threshold=service.decision_threshold,
+        latency_ms=latency_s * 1000,
+        endpoint=endpoint,
+    )
+    return _to_response(service, predictions)
 
 
 def _to_response(service: ModelService, predictions: pd.DataFrame) -> PredictionResponse:

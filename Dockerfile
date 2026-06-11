@@ -35,8 +35,9 @@ COPY artifacts/features_scaler.joblib artifacts/
 COPY models/model.keras models/
 COPY metrics/evaluation.json metrics/
 
-# Logs só em stdout (12-factor): o filesystem do container é do root,
-# e a plataforma (docker/k8s) é quem coleta logs
+# Logs de diagnóstico só em stdout (12-factor). Logs de PREDIÇÃO são dados
+# de monitoramento: vão para /app/logs (montar volume em produção)
+RUN mkdir -p /app/logs && chown appuser /app/logs
 ENV PATH="/app/.venv/bin:$PATH" LOG_TO_FILE=false
 USER appuser
 EXPOSE 5001

@@ -28,5 +28,8 @@ O objetivo é que um(a) cientista de dados ou ML engineer júnior consiga ler o 
 | [13](fase3-item15-16-fastapi.md) | 15, 16 | FastAPI + Pydantic v2: factory, registry, threshold da avaliação, 11 testes de contrato | 7 |
 | [14](fase3-item17-estrategias-deploy.md) | 17 | Estratégias de deploy: recreate, blue-green, canary, shadow | 7, 9 |
 | [15](fase4-item18-21-docker-k8s-cd.md) | 18–21 | Docker multi-stage non-root, compose com MLflow+MinIO, K8s com probes, CD com smoke test | 7, 10 |
+| [16](fase5-item22-24-monitoramento.md) | 22–24 | Logs JSONL de predição, drift Evidently (detecção validada), Prometheus/Grafana provisionados | 8 |
+| [17](fase5-item25-avaliacao-em-producao.md) | 25 | Avaliação sem labels: pirâmide de proxies e gatilho de retraining | 8, 9 |
+| [18](../../MODEL_CARD.md) | 26 | Model card: uso pretendido, limitações, ética e compliance | 11 |
 
 *(o índice cresce conforme os itens são entregues — veja a sequência completa no [ROADMAP.md](../../ROADMAP.md))*

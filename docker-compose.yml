@@ -1,12 +1,12 @@
-# Stack local: API de predição + MLflow server + MinIO (artifact store S3)
+# Stack local: API + MLflow + MinIO + Prometheus + Grafana
 #
 #   docker compose up --build
 #
 #   API:        http://localhost:5001/docs
 #   MLflow UI:  http://localhost:5000
 #   MinIO UI:   http://localhost:9101  (minioadmin / minioadmin)
-#
-# Prometheus e Grafana entram na Fase 5, junto com a instrumentação /metrics.
+#   Prometheus: http://localhost:9090
+#   Grafana:    http://localhost:3000  (admin / admin, dashboard provisionado)
 
 services:
   api:
@@ -20,6 +20,9 @@ services:
       MLFLOW_S3_ENDPOINT_URL: http://minio:9000
       AWS_ACCESS_KEY_ID: minioadmin
       AWS_SECRET_ACCESS_KEY: minioadmin
+    volumes:
+      # Logs de predição persistem fora do container (insumo do drift report)
+      - prediction-logs:/app/logs
     depends_on:
       mlflow:
         condition: service_started
@@ -80,6 +83,29 @@ services:
       mc mb --ignore-existing local/mlflow-artifacts
       "
 
+  prometheus:
+    image: prom/prometheus:latest
+    command: ["--config.file=/etc/prometheus/prometheus.yml"]
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./deploy/monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    depends_on:
+      - api
+
+  grafana:
+    image: grafana/grafana:latest
+    ports:
+      - "3000:3000"
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: admin
+    volumes:
+      - ./deploy/monitoring/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./deploy/monitoring/grafana/dashboards:/var/lib/grafana/dashboards:ro
+    depends_on:
+      - prometheus
+
 volumes:
   mlflow-data:
   minio-data:
+  prediction-logs:
