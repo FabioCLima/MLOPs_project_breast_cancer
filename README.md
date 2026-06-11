@@ -52,19 +52,19 @@ A machine learning project that builds and deploys a neural network classifier f
 
 ## Dependencies
 
-The project requires Python 3.12+ and the packages informed in `pyproject.toml`.
+The project requires **Python 3.12** (TensorFlow 2.19 does not support Python 3.13) and the packages informed in `pyproject.toml`. The pinned version lives in `.python-version`.
 
 ## Installation
 
 1. Clone the repository:
 ```bash
 git clone <repository-url>
-cd mlops_project
+cd MLOPs_project_breast_cancer
 ```
 
-2. Install dependencies:
+2. Install dependencies with [uv](https://docs.astral.sh/uv/):
 ```bash
-pip install -e .
+uv sync --python 3.12
 ```
 
 ## Configuration
