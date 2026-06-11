@@ -92,8 +92,7 @@ def tune_threshold(
 
     if best_recall < 0:
         logger.warning(
-            f"Nenhum threshold atinge precision maligna >= {min_malignant_precision}; "
-            "usando 0.5"
+            f"Nenhum threshold atinge precision maligna >= {min_malignant_precision}; usando 0.5"
         )
         return 0.5
 

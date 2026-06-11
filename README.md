@@ -129,17 +129,19 @@ python -m src.model_training.train_model
 python -m src.model_evaluation.evaluate_model
 ```
 
-### Running the Web Application
+### Running the API
 
-#### Flask
-
-After training the model, start the Flask web server:
+After training the model (`uv run dvc repro`), start the FastAPI server:
 
 ```bash
-python app/main.py
+uv run uvicorn --factory app.api:create_app --port 5001
 ```
 
-The application will be available at `http://localhost:5001`
+- Swagger UI: `http://localhost:5001/docs`
+- Health check: `GET /health`
+- Metadata (model version, threshold, metrics): `GET /metadata`
+- Predição JSON: `POST /predict` com `{"records": [{...30 features...}]}`
+- Predição em lote: `POST /predict/batch` com upload de CSV
 
 ### Docker
 
@@ -160,9 +162,6 @@ docker run -p 5001:5001 ml-classifier
 The web application will be available at `http://localhost:5001`.
 
 ### Making Predictions
-
-1. **Web Interface**: Upload a CSV file with breast cancer features through the web interface
-2. **API**: The `/upload` endpoint accepts CSV files and returns predictions
 
 #### Required CSV Format
 

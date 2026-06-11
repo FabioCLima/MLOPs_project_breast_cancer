@@ -26,6 +26,8 @@ def service() -> ModelService:
     svc.features_imputer = _IdentityTransformer()
     svc.features_scaler = _IdentityTransformer()
     svc.model = _FakeModel()
+    svc.decision_threshold = 0.5
+    svc.model_version = "test"
     return svc
 
 
