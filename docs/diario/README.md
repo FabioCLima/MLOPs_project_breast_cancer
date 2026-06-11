@@ -22,5 +22,6 @@ O objetivo é que um(a) cientista de dados ou ML engineer júnior consiga ler o 
 | [07](fase1-item08-testes.md) | 8 | Suite de testes (19) + mypy; ModelService testável | 6, 11 |
 | [08](fase1-item09-ci.md) | 9 | CI GitHub Actions: lint, tipos e testes a cada push | 9, 10 |
 | [09](fase2-item10-mlflow.md) | 10, 14 | MLflow: tracking, registry e gate de promoção por recall | 6, 7 |
+| [10](fase2-item11-baselines.md) | 11 | Baselines com CV estratificada: LR empata com o MLP | 6 |
 
 *(o índice cresce conforme os itens são entregues — veja a sequência completa no [ROADMAP.md](../../ROADMAP.md))*

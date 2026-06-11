@@ -12,6 +12,16 @@ preprocess_data:
   val_size: 0.2
   random_seed: 42
 
+baselines:
+  random_seed: 42
+  cv_folds: 5
+  logistic_regression:
+    C: 1.0
+    max_iter: 1000
+  random_forest:
+    n_estimators: 300
+    max_depth: null
+
 evaluate:
   # Gate de promocao: recall minimo da classe maligna para o modelo
   # receber o alias "production" no registry (falso negativo e o erro

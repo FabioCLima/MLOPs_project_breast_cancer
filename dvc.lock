@@ -148,3 +148,38 @@ stages:
       hash: md5
       md5: 492160af3c04828a0d44fc695397e210
       size: 836
+  baselines:
+    cmd: python -m src.model_training.train_baselines
+    deps:
+    - path: data/processed/test_processed.csv
+      hash: md5
+      md5: 2fcac676d25e161b97b5f5fe0b35865a
+      size: 67862
+    - path: data/processed/train_processed.csv
+      hash: md5
+      md5: 05db0127b75f10013917e5c52ae02ade
+      size: 215406
+    - path: data/processed/val_processed.csv
+      hash: md5
+      md5: 5ee9f40f2ffb0af687cc7145cfeea014
+      size: 54363
+    - path: src/model_training/train_baselines.py
+      hash: md5
+      md5: b1c45033d83ed09fe46119ead96033d8
+      size: 5201
+    params:
+      params.yaml:
+        baselines:
+          random_seed: 42
+          cv_folds: 5
+          logistic_regression:
+            C: 1.0
+            max_iter: 1000
+          random_forest:
+            n_estimators: 300
+            max_depth:
+    outs:
+    - path: metrics/baselines.json
+      hash: md5
+      md5: dcb1429cd4ccada92a0ac0860483a2f4
+      size: 1855

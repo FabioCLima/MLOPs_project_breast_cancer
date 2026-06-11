@@ -32,6 +32,19 @@ stages:
       - data/processed/test_processed.csv
       - artifacts/features_scaler.joblib
 
+  baselines:
+    cmd: python -m src.model_training.train_baselines
+    deps:
+      - data/processed/train_processed.csv
+      - data/processed/val_processed.csv
+      - data/processed/test_processed.csv
+      - src/model_training/train_baselines.py
+    params:
+      - baselines
+    metrics:
+      - metrics/baselines.json:
+          cache: false
+
   train:
     cmd: python -m src.model_training.train_model
     deps:
