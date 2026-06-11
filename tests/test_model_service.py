@@ -53,6 +53,4 @@ def test_threshold_decision(service: ModelService, features: pd.DataFrame) -> No
 
 def test_probability_passthrough(service: ModelService, features: pd.DataFrame) -> None:
     result = service.predict(features)
-    np.testing.assert_allclose(
-        result["Probability (benign)"], [0.9, 0.5, 0.4, 0.1], atol=1e-6
-    )
+    np.testing.assert_allclose(result["Probability (benign)"], [0.9, 0.5, 0.4, 0.1], atol=1e-6)

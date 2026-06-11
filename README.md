@@ -1,5 +1,7 @@
 # ML Classifier - Breast Cancer Prediction
 
+[![CI](https://github.com/FabioCLima/MLOPs_project_breast_cancer/actions/workflows/ci.yml/badge.svg)](https://github.com/FabioCLima/MLOPs_project_breast_cancer/actions/workflows/ci.yml)
+
 A machine learning project that builds and deploys a neural network classifier for breast cancer prediction using the scikit-learn breast cancer dataset.
 
 ## Project Structure
