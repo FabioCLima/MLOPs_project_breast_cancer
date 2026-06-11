@@ -1,170 +1,130 @@
-# ML Classifier - Breast Cancer Prediction
+# Breast Cancer Classifier — End-to-End MLOps
 
 [![CI](https://github.com/FabioCLima/MLOPs_project_breast_cancer/actions/workflows/ci.yml/badge.svg)](https://github.com/FabioCLima/MLOPs_project_breast_cancer/actions/workflows/ci.yml)
+[![Python 3.12](https://img.shields.io/badge/python-3.12-blue.svg)](pyproject.toml)
 
-A machine learning project that builds and deploys a neural network classifier for breast cancer prediction using the scikit-learn breast cancer dataset.
+A binary classification system (malignant vs. benign tumors) built as a **complete MLOps case study**: reproducible pipeline, experiment tracking with a model registry and promotion gate, contract-validated serving, containerized infrastructure, and production monitoring with drift detection.
 
-## Project Structure
+> ⚠️ Didactic project on a small public dataset. **Not for clinical use** — see [MODEL_CARD.md](MODEL_CARD.md).
 
-```
-/mlops_project
-├── app/                          # Web application
-│   ├── __init__.py               # Package marker
-│   ├── main.py                   # Flask app with prediction API
-│   └── templates/                # HTML templates for web UI
-│       └── index.html            # Web interface for predictions
-├── artifacts/                    # Preprocessing artifacts
-├── data/                         # Data storage
-│   ├── preprocessed/             # Cleaned data
-│   ├── processed/                # Feature-engineered data
-│   └── raw/                      # Raw dataset
-├── metrics/                      # Model performance metrics
-├── models/                       # Trained model
-├── src/                          # Source code modules
-│   ├── __init__.py               # Package marker
-│   ├── data_loading/             # Data loading utilities
-│   │   ├── __init__.py           # Package marker
-│   │   └── load_data.py          # Dataset loading and preparation
-│   ├── data_preprocessing/       # Data cleaning and splitting
-│   │   ├── __init__.py           # Package marker
-│   │   └── preprocess_data.py    # Data cleaning and imputation
-│   ├── feature_engineering/      # Feature transformation utilities
-│   │   ├── __init__.py           # Package marker
-│   │   └── engineer_features.py  # Feature scaling and transformation
-│   ├── model_evaluation/         # Model evaluation scripts
-│   │   ├── __init__.py           # Package marker
-│   │   └── evaluate_model.py     # Model performance evaluation
-│   └── model_training/           # Model training scripts
-│       ├── __init__.py           # Package marker
-│       └── train_model.py        # Neural network training
-├── .dockerignore                 # Docker ignore rules
-├── Dockerfile                    # Docker build instructions
-├── params.yaml                   # Configuration parameters
-├── pyproject.toml                # Python dependencies and project metadata
-└── README.md                     # Project documentation
+## Architecture
+
+```mermaid
+flowchart LR
+    subgraph pipeline [DVC pipeline]
+        A[load_data] --> B[preprocess<br/>stratified split + imputer]
+        B --> C[features<br/>scaler]
+        C --> D[train<br/>Keras MLP]
+        C --> E[baselines<br/>LR / RF + CV]
+        D --> F[evaluate<br/>threshold tuning + gate]
+        D --> G[explain<br/>permutation importance]
+    end
+    F -->|"promote if recall ≥ 0.95"| H[(MLflow Registry<br/>@production)]
+    H --> I[FastAPI serving<br/>Pydantic contract]
+    I --> J[prediction logs JSONL]
+    I --> K[Prometheus /metrics]
+    J --> L[Evidently drift report]
+    K --> M[Grafana dashboard]
 ```
 
-## Features
+Data contracts (Pandera) guard every pipeline boundary; the serving contract (Pydantic) is generated from the **same canonical feature list** — schema skew between training and serving is impossible by construction.
 
-- **Data Pipeline**: Complete ETL pipeline from raw data to model-ready features
-- **Neural Network**: TensorFlow/Keras deep learning model with configurable architecture
-- **Web Interface**: Flask-based web application for making predictions
-- **Artifact Management**: Serialized models and preprocessors for deployment
-- **Evaluation Metrics**: Comprehensive model performance analysis
+## Results
 
-## Dependencies
+| Model | ROC-AUC (5-fold CV) | Malignant recall (test) | Notes |
+|-------|--------------------:|------------------------:|-------|
+| Logistic Regression | **0.994 ± 0.006** | **0.976** | baseline, interpretable, ms training |
+| Random Forest | 0.988 ± 0.007 | 0.929 | |
+| Keras MLP (served) | — (single split) | **0.976** | ROC-AUC 0.992, Brier 0.040 |
 
-The project requires **Python 3.12** (TensorFlow 2.19 does not support Python 3.13) and the packages informed in `pyproject.toml`. The pinned version lives in `.python-version`.
+**The honest finding:** a logistic regression matches the neural network on this dataset (569 rows, 30 well-behaved tabular features) — the expected outcome, measured rather than assumed. The MLP is served to exercise the full TensorFlow → registry → API path; the comparison table is the evidence a real model choice would be based on.
 
-## Installation
+**Clinical framing:** the decision threshold (0.88) is tuned on the validation set to maximize malignant recall under a precision constraint — a false negative (missed cancer) costs far more than a false positive (extra exam). At that operating point: recall 0.976, precision 0.837, accuracy 0.921. A model version is only promoted to `@production` if test recall ≥ 0.95 (executable gate — it has already caught one bad threshold during development).
 
-1. Clone the repository:
+## Quickstart
+
 ```bash
-git clone <repository-url>
-cd MLOPs_project_breast_cancer
-```
-
-2. Install dependencies with [uv](https://docs.astral.sh/uv/):
-```bash
+# Environment (Python 3.12 pinned — TF 2.19 has no 3.13 wheels)
 uv sync --python 3.12
+
+# Full pipeline: data → preprocess → features → train/baselines → evaluate → explain
+uv run dvc repro
+
+# Experiment tracking UI (runs, registry, promotion gate)
+uv run mlflow ui --backend-store-uri sqlite:///mlflow.db   # http://localhost:5000
+
+# Serving (loads model from registry @production, threshold from evaluation)
+uv run uvicorn --factory app.api:create_app --port 5001    # http://localhost:5001/docs
+
+# Quality gates (same as CI)
+uv run ruff check . && uv run mypy src/ app/ && uv run pytest tests/ -q   # 32 tests
+
+# Drift detection demo (shifts the top-3 important features; detects exactly those 3)
+uv run python -m src.monitoring.drift_report --simulate
 ```
 
-## Configuration
-
-Model hyperparameters and data processing settings are configured in `params.yaml`.
-
-## Model Architecture
-
-The neural network consists of a multilayer perceptron with 2 hidden layers.
-
-## Artifacts
-
-The training process generates the following files:
-
-In the `models/` directory:
-- `model.keras`: Trained TensorFlow model
-
-In the `artifacts/` directory:
-- `features_mean_imputer.joblib`: Feature imputer for missing values
-- `features_scaler.joblib`: Standard scaler for feature normalization
-
-## Metrics
-
-Model performance metrics are saved to:
-- `metrics/training.json`: Training history and validation metrics
-- `metrics/evaluation.json`: Test set performance and confusion matrix
-
-## Development
-
-The project follows a modular structure with separate concerns:
-- **Data Loading**: Fetches and saves raw breast cancer dataset
-- **Preprocessing**: Handles missing values and data splitting
-- **Feature Engineering**: Applies scaling transformations
-- **Model Training**: Builds and trains the neural network
-- **Model Evaluation**: Generates performance metrics
-- **Web Application**: Provides prediction interface
-
-Each module can be run independently and saves its outputs for the next stage in the pipeline.
-
-## Usage
-
-### Training the Model
-
-Run the complete ML pipeline (for proper logging to the terminal, run as modules with `python -m`):
+### Full stack (Docker Compose)
 
 ```bash
-# 1. Load and prepare raw data
-python -m src.data_loading.load_data
-
-# 2. Preprocess data (imputation, train/test split)
-python -m src.data_preprocessing.preprocess_data
-
-# 3. Engineer features (scaling)
-python -m src.feature_engineering.engineer_features
-
-# 4. Train the neural network model
-python -m src.model_training.train_model
-
-# 5. Evaluate model performance
-python -m src.model_evaluation.evaluate_model
+docker compose up --build
 ```
 
-### Running the API
+| Service | URL |
+|---------|-----|
+| API (Swagger) | http://localhost:5001/docs |
+| MLflow | http://localhost:5000 |
+| MinIO console | http://localhost:9101 (minioadmin/minioadmin) |
+| Prometheus | http://localhost:9090 |
+| Grafana (provisioned dashboard) | http://localhost:3000 (admin/admin) |
 
-After training the model (`uv run dvc repro`), start the FastAPI server:
+### Kubernetes (kind)
+
+Deployment with liveness/readiness probes, Service and HPA: see [deploy/k8s/README.md](deploy/k8s/README.md).
+
+## API
 
 ```bash
-uv run uvicorn --factory app.api:create_app --port 5001
+curl -X POST localhost:5001/predict -H 'Content-Type: application/json' \
+  -d '{"records":[{"mean radius": 17.99, "mean texture": 10.38, ...}]}'
+# → {"model_version":"v2","decision_threshold":0.88,
+#    "results":[{"prediction":0,"label":"malignant","probability_benign":0.0}]}
 ```
 
-- Swagger UI: `http://localhost:5001/docs`
-- Health check: `GET /health`
-- Metadata (model version, threshold, metrics): `GET /metadata`
-- Predição JSON: `POST /predict` com `{"records": [{...30 features...}]}`
-- Predição em lote: `POST /predict/batch` com upload de CSV
+`GET /health` · `GET /metadata` (version, threshold, metrics) · `POST /predict` · `POST /predict/batch` (CSV) · `GET /metrics` (Prometheus). Invalid input returns 422 naming the offending field. Every response carries the model version — full audit trail back to the MLflow run.
 
-### Docker
+## Engineering highlights
 
-You can instead build and run the application using Docker:
+- **Leakage-free by test, not by hope** — train/val/test split happens before any transformer is fitted; `tests/test_no_leakage.py` proves imputer/scaler statistics match train-only moments. (The original code had validation leakage via Keras `validation_split` — found, fixed, and regression-tested.)
+- **Data contracts at every boundary** — Pandera schemas (raw/preprocessed/processed) in the pipeline, Pydantic at the API, both generated from one canonical feature list.
+- **Promotion as code** — MLflow registry alias moves only if the clinical metric passes; rollback is a metadata operation.
+- **Observability chain** — structured JSONL prediction logs (the raw material) → Prometheus proxies (malignant-rate, probability distribution) → Evidently per-feature K-S drift reports. Detection validated with synthetic drift: 3/3 shifted features flagged, 0 false positives.
+- **CI/CD** — lint + types + tests on every push; CD retrains from scratch (`dvc repro`), builds the multi-stage non-root image, smoke-tests `/health` in a real container, then publishes to GHCR.
 
-#### Build the Docker image
+## Decisions — including what was deliberately NOT used
 
-```bash
-docker build -t ml-classifier .
+Architecture Decision Records in [docs/adr/](docs/adr/): [DVC over Airflow](docs/adr/0001-dvc-como-orquestrador.md) · [FastAPI over Flask](docs/adr/0002-fastapi-no-lugar-de-flask.md) · [MLflow, no W&B](docs/adr/0003-mlflow-nao-wandb.md) · [threshold as a versioned business parameter](docs/adr/0004-threshold-como-parametro-de-negocio.md) · [**no feature store**](docs/adr/0005-sem-feature-store.md) (this project has none of the three problems Feast solves — the ADR lists the criteria that would change the answer).
+
+## Limitations & production considerations
+
+Small single-center 1990s dataset; no external validation; univariate drift detection misses multivariate shifts; concept drift requires delayed labels. Full discussion — including privacy (LGPD), audit trail and bias — in [MODEL_CARD.md](MODEL_CARD.md) and [docs/diario/fase5-item25](docs/diario/fase5-item25-avaliacao-em-producao.md).
+
+## Learning journal (pt-BR)
+
+Every change in this repo is documented in [docs/diario/](docs/diario/README.md) — 18 entries pairing each implementation with the theory in Chip Huyen's *Designing Machine Learning Systems*, written for junior ML engineers to read book and code side by side. The phased plan lives in [ROADMAP.md](ROADMAP.md) / [BACKLOG.md](BACKLOG.md).
+
+## Project structure
+
 ```
-
-#### Run the Docker container
-
-```bash
-docker run -p 5001:5001 ml-classifier
+├── app/                  # FastAPI serving: api, schemas, model_service, metrics, prediction_logger
+├── src/
+│   ├── config/           # paths, params, features (canonical contract), tracking, logging
+│   ├── data_*/           # pipeline stages (loading, preprocessing, validation)
+│   ├── feature_engineering/, model_training/, model_evaluation/
+│   └── monitoring/       # Evidently drift report
+├── tests/                # 32 tests: leakage, schemas, units, API contract, observability
+├── deploy/               # k8s manifests, prometheus/grafana provisioning
+├── docs/                 # diário (learning journal), ADRs
+├── dvc.yaml / params.yaml
+├── docker-compose.yml / Dockerfile
+└── MODEL_CARD.md
 ```
-
-The web application will be available at `http://localhost:5001`.
-
-### Making Predictions
-
-#### Required CSV Format
-
-Your CSV file must contain all 30 breast cancer features with exact column names:
-- mean radius, mean texture, mean perimeter, mean area, mean smoothness, etc.
-- See `sklearn.datasets.load_breast_cancer().feature_names` for the complete list

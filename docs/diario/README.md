@@ -31,5 +31,8 @@ O objetivo é que um(a) cientista de dados ou ML engineer júnior consiga ler o 
 | [16](fase5-item22-24-monitoramento.md) | 22–24 | Logs JSONL de predição, drift Evidently (detecção validada), Prometheus/Grafana provisionados | 8 |
 | [17](fase5-item25-avaliacao-em-producao.md) | 25 | Avaliação sem labels: pirâmide de proxies e gatilho de retraining | 8, 9 |
 | [18](../../MODEL_CARD.md) | 26 | Model card: uso pretendido, limitações, ética e compliance | 11 |
+| [19](fase6-item27-28-readme-adrs.md) | 27, 28 | README como case técnico; 5 ADRs (incluindo "sem feature store") | 2, 11 |
+
+**Status: todos os 28 itens do backlog concluídos.** O repositório completo — pipeline DVC, MLflow com gate de promoção, FastAPI com contrato Pydantic, Docker/K8s, monitoramento com drift — é a materialização prática dos capítulos 1–11 do livro.
 
 *(o índice cresce conforme os itens são entregues — veja a sequência completa no [ROADMAP.md](../../ROADMAP.md))*
