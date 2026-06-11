@@ -1,15 +1,21 @@
 import json
 import logging
-import os
 
 import numpy as np
 import pandas as pd
 import tensorflow as tf
-import yaml
 from tensorflow.keras.callbacks import EarlyStopping
 from tensorflow.keras.layers import Dense, Dropout, Input
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.optimizers import Adam
+
+from src.config.params import load_params
+from src.config.paths import (
+    MODEL_PATH,
+    TRAIN_PROCESSED_PATH,
+    TRAINING_METRICS_PATH,
+    VAL_PROCESSED_PATH,
+)
 
 logger = logging.getLogger("src.model_training.train_model")
 
@@ -20,23 +26,10 @@ def load_data() -> tuple[pd.DataFrame, pd.DataFrame]:
     Returns:
         tuple[pd.DataFrame, pd.DataFrame]: Train and validation datasets.
     """
-    train_path = "data/processed/train_processed.csv"
-    val_path = "data/processed/val_processed.csv"
-    logger.info(f"Loading feature data from {train_path} and {val_path}")
-    train_data = pd.read_csv(train_path)
-    val_data = pd.read_csv(val_path)
+    logger.info(f"Loading feature data from {TRAIN_PROCESSED_PATH} and {VAL_PROCESSED_PATH}")
+    train_data = pd.read_csv(TRAIN_PROCESSED_PATH)
+    val_data = pd.read_csv(VAL_PROCESSED_PATH)
     return train_data, val_data
-
-
-def load_params() -> dict[str, float | int]:
-    """Load model hyperparameters for the train stage from params.yaml.
-
-    Returns:
-        dict[str, int | float]: dictionary containing model hyperparameters.
-    """
-    with open("params.yaml") as f:
-        params = yaml.safe_load(f)
-    return params["train"]
 
 
 def prepare_data(data: pd.DataFrame) -> tuple[pd.DataFrame, pd.Series]:
@@ -89,9 +82,9 @@ def save_training_artifacts(model: tf.keras.Model) -> None:
     Args:
         model (tf.keras.Model): Trained Keras model.
     """
-    model_path = os.path.join("models", "model.keras")
-    logger.info(f"Saving model to {model_path}")
-    model.save(model_path)
+    logger.info(f"Saving model to {MODEL_PATH}")
+    MODEL_PATH.parent.mkdir(parents=True, exist_ok=True)
+    model.save(MODEL_PATH)
 
 
 def train_model(
@@ -134,8 +127,8 @@ def train_model(
     best_epoch = int(np.argmin(history.history["val_loss"]))
     metrics = {metric: float(values[best_epoch]) for metric, values in history.history.items()}
     metrics["best_epoch"] = best_epoch
-    metrics_path = "metrics/training.json"
-    with open(metrics_path, "w") as f:
+    TRAINING_METRICS_PATH.parent.mkdir(parents=True, exist_ok=True)
+    with open(TRAINING_METRICS_PATH, "w") as f:
         json.dump(metrics, f, indent=2)
     logger.info(f"Best epoch: {best_epoch} | val_loss: {metrics['val_loss']:.4f}")
 
@@ -143,7 +136,7 @@ def train_model(
 def main() -> None:
     """Main function to orchestrate the model training process."""
     train_data, val_data = load_data()
-    params = load_params()
+    params = load_params("train")
     train_model(train_data, val_data, params)
     logger.info("Model training completed")
 

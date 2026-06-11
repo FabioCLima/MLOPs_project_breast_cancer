@@ -1,11 +1,18 @@
 import logging
-import os
 
 import joblib
 import pandas as pd
-import yaml
 from sklearn.impute import SimpleImputer
 from sklearn.model_selection import train_test_split
+
+from src.config.params import load_params
+from src.config.paths import (
+    IMPUTER_PATH,
+    RAW_DATA_PATH,
+    TEST_PREPROCESSED_PATH,
+    TRAIN_PREPROCESSED_PATH,
+    VAL_PREPROCESSED_PATH,
+)
 
 logger = logging.getLogger("src.data_preprocessing.preprocess_data")
 
@@ -16,21 +23,9 @@ def load_data() -> pd.DataFrame:
     Returns:
         pd.DataFrame: Raw input data
     """
-    input_path = "data/raw/raw.csv"
-    logger.info(f"Loading raw data from {input_path}")
-    data = pd.read_csv(input_path)
+    logger.info(f"Loading raw data from {RAW_DATA_PATH}")
+    data = pd.read_csv(RAW_DATA_PATH)
     return data
-
-
-def load_params() -> dict[str, float | int]:
-    """Load preprocessing parameters from params.yaml.
-
-    Returns:
-        dict[str, Any]: dictionary containing preprocessing parameters.
-    """
-    with open("params.yaml") as f:
-        params = yaml.safe_load(f)
-    return params["preprocess_data"]
 
 
 def split_data(data: pd.DataFrame) -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
@@ -45,7 +40,7 @@ def split_data(data: pd.DataFrame) -> tuple[pd.DataFrame, pd.DataFrame, pd.DataF
     Returns:
         tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]: Train, validation and test datasets
     """
-    params = load_params()
+    params = load_params("preprocess_data")
     logger.info("Splitting data into train, validation and test sets (stratified)...")
     train_val_data, test_data = train_test_split(
         data,
@@ -112,17 +107,17 @@ def save_artifacts(
         imputer (SimpleImputer): Fitted imputer
     """
     # Save processed data
-    data_dir = "data/preprocessed"
-    logger.info(f"Saving processed data to {data_dir}")
+    logger.info(f"Saving processed data to {TRAIN_PREPROCESSED_PATH.parent}")
+    TRAIN_PREPROCESSED_PATH.parent.mkdir(parents=True, exist_ok=True)
 
-    train_data.to_csv(os.path.join(data_dir, "train_preprocessed.csv"), index=False)
-    val_data.to_csv(os.path.join(data_dir, "val_preprocessed.csv"), index=False)
-    test_data.to_csv(os.path.join(data_dir, "test_preprocessed.csv"), index=False)
+    train_data.to_csv(TRAIN_PREPROCESSED_PATH, index=False)
+    val_data.to_csv(VAL_PREPROCESSED_PATH, index=False)
+    test_data.to_csv(TEST_PREPROCESSED_PATH, index=False)
 
     # Save imputer
-    imputer_path = os.path.join("artifacts", "[features]_mean_imputer.joblib")
-    logger.info(f"Saving imputer to {imputer_path}")
-    joblib.dump(imputer, imputer_path)
+    logger.info(f"Saving imputer to {IMPUTER_PATH}")
+    IMPUTER_PATH.parent.mkdir(parents=True, exist_ok=True)
+    joblib.dump(imputer, IMPUTER_PATH)
 
 
 def main() -> None:

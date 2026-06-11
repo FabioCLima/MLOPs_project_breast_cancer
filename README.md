@@ -83,9 +83,8 @@ In the `models/` directory:
 - `model.keras`: Trained TensorFlow model
 
 In the `artifacts/` directory:
-- `[features]_mean_imputer.joblib`: Feature imputer for missing values
-- `[features]_scaler.joblib`: Standard scaler for feature normalization
-- `[target]_one_hot_encoder.joblib`: One-hot encoder for target labels
+- `features_mean_imputer.joblib`: Feature imputer for missing values
+- `features_scaler.joblib`: Standard scaler for feature normalization
 
 ## Metrics
 

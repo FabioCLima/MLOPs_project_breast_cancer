@@ -1,12 +1,13 @@
 import io
 import logging
-import os
 
 import joblib
 import pandas as pd
 from flask import Flask, render_template, request
 from sklearn.datasets import load_breast_cancer
 from tensorflow.keras.models import load_model
+
+from src.config.paths import IMPUTER_PATH, MODEL_PATH, SCALER_PATH
 
 logger = logging.getLogger("app.main")
 
@@ -19,20 +20,9 @@ class ModelService:
         """Load all artifacts from the local project folder."""
         logger.info("Loading artifacts from local project folder")
 
-        # Define base paths
-        artifacts_dir = "artifacts"
-        models_dir = "models"
-
-        # Define paths to the preprocessing artifacts
-        features_imputer_path = os.path.join(artifacts_dir, "[features]_mean_imputer.joblib")
-        features_scaler_path = os.path.join(artifacts_dir, "[features]_scaler.joblib")
-        # Define path to the model file
-        model_path = os.path.join(models_dir, "model.keras")
-
-        # Load all required artifacts
-        self.features_imputer = joblib.load(features_imputer_path)
-        self.features_scaler = joblib.load(features_scaler_path)
-        self.model = load_model(model_path)
+        self.features_imputer = joblib.load(IMPUTER_PATH)
+        self.features_scaler = joblib.load(SCALER_PATH)
+        self.model = load_model(MODEL_PATH)
 
         logger.info("Successfully loaded all artifacts")
 

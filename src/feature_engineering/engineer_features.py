@@ -1,9 +1,18 @@
 import logging
-import os
 
 import joblib
 import pandas as pd
 from sklearn.preprocessing import StandardScaler
+
+from src.config.paths import (
+    SCALER_PATH,
+    TEST_PREPROCESSED_PATH,
+    TEST_PROCESSED_PATH,
+    TRAIN_PREPROCESSED_PATH,
+    TRAIN_PROCESSED_PATH,
+    VAL_PREPROCESSED_PATH,
+    VAL_PROCESSED_PATH,
+)
 
 logger = logging.getLogger("src.feature_engineering.engineer_features")
 
@@ -14,11 +23,10 @@ def load_preprocessed_data() -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
     Returns:
         tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]: Train, validation and test datasets
     """
-    data_dir = "data/preprocessed"
-    logger.info(f"Loading preprocessed data from {data_dir}")
-    train = pd.read_csv(os.path.join(data_dir, "train_preprocessed.csv"))
-    val = pd.read_csv(os.path.join(data_dir, "val_preprocessed.csv"))
-    test = pd.read_csv(os.path.join(data_dir, "test_preprocessed.csv"))
+    logger.info(f"Loading preprocessed data from {TRAIN_PREPROCESSED_PATH.parent}")
+    train = pd.read_csv(TRAIN_PREPROCESSED_PATH)
+    val = pd.read_csv(VAL_PREPROCESSED_PATH)
+    test = pd.read_csv(TEST_PREPROCESSED_PATH)
     return train, val, test
 
 
@@ -70,17 +78,17 @@ def save_artifacts(
         scaler (StandardScaler): Fitted scaler
     """
     # Save processed data
-    output_dir = "data/processed"
-    logger.info(f"Saving engineered features to {output_dir}")
+    logger.info(f"Saving engineered features to {TRAIN_PROCESSED_PATH.parent}")
+    TRAIN_PROCESSED_PATH.parent.mkdir(parents=True, exist_ok=True)
 
-    train_processed.to_csv(os.path.join(output_dir, "train_processed.csv"), index=False)
-    val_processed.to_csv(os.path.join(output_dir, "val_processed.csv"), index=False)
-    test_processed.to_csv(os.path.join(output_dir, "test_processed.csv"), index=False)
+    train_processed.to_csv(TRAIN_PROCESSED_PATH, index=False)
+    val_processed.to_csv(VAL_PROCESSED_PATH, index=False)
+    test_processed.to_csv(TEST_PROCESSED_PATH, index=False)
 
     # Save scaler
-    scaler_path = os.path.join("artifacts", "[features]_scaler.joblib")
-    logger.info(f"Saving scaler to {scaler_path}")
-    joblib.dump(scaler, scaler_path)
+    logger.info(f"Saving scaler to {SCALER_PATH}")
+    SCALER_PATH.parent.mkdir(parents=True, exist_ok=True)
+    joblib.dump(scaler, SCALER_PATH)
 
 
 def main() -> None:

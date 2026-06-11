@@ -5,6 +5,8 @@ import pandas as pd
 import tensorflow as tf
 from sklearn.metrics import classification_report, confusion_matrix
 
+from src.config.paths import EVALUATION_METRICS_PATH, MODEL_PATH, TEST_PROCESSED_PATH
+
 logger = logging.getLogger("src.model_evaluation.evaluate_model")
 
 DECISION_THRESHOLD = 0.5
@@ -16,8 +18,7 @@ def load_model() -> tf.keras.Model:
     Returns:
         tf.keras.Model: Loaded Keras model.
     """
-    model_path = "models/model.keras"
-    model = tf.keras.models.load_model(model_path)
+    model = tf.keras.models.load_model(MODEL_PATH)
     return model
 
 
@@ -29,9 +30,8 @@ def load_test_data() -> tuple[pd.DataFrame, pd.Series]:
             pd.DataFrame: Test features
             pd.Series: Test labels
     """
-    data_path = "data/processed/test_processed.csv"
-    logger.info(f"Loading test data from {data_path}")
-    data = pd.read_csv(data_path)
+    logger.info(f"Loading test data from {TEST_PROCESSED_PATH}")
+    data = pd.read_csv(TEST_PROCESSED_PATH)
     X = data.drop("target", axis=1)
     y = data["target"].astype(int)
     return X, y
@@ -65,8 +65,8 @@ def evaluate_model(model: tf.keras.Model, X: pd.DataFrame, y_true: pd.Series) ->
         "Classification Report:\n"
         f"{classification_report(y_true, y_pred, target_names=['malignant', 'benign'])}"
     )
-    evaluation_path = "metrics/evaluation.json"
-    with open(evaluation_path, "w") as f:
+    EVALUATION_METRICS_PATH.parent.mkdir(parents=True, exist_ok=True)
+    with open(EVALUATION_METRICS_PATH, "w") as f:
         json.dump(evaluation, f, indent=2)
 
 
