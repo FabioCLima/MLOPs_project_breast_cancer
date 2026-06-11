@@ -1,14 +1,15 @@
 import json
-import logging
 
 import numpy as np
 import pandas as pd
 import tensorflow as tf
+from loguru import logger
 from tensorflow.keras.callbacks import EarlyStopping
 from tensorflow.keras.layers import Dense, Dropout, Input
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.optimizers import Adam
 
+from src.config.logging_config import setup_logger
 from src.config.params import load_params
 from src.config.paths import (
     MODEL_PATH,
@@ -16,8 +17,6 @@ from src.config.paths import (
     TRAINING_METRICS_PATH,
     VAL_PROCESSED_PATH,
 )
-
-logger = logging.getLogger("src.model_training.train_model")
 
 
 def load_data() -> tuple[pd.DataFrame, pd.DataFrame]:
@@ -135,6 +134,7 @@ def train_model(
 
 def main() -> None:
     """Main function to orchestrate the model training process."""
+    setup_logger()
     train_data, val_data = load_data()
     params = load_params("train")
     train_model(train_data, val_data, params)

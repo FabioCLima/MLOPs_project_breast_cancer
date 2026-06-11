@@ -4,6 +4,7 @@ from loguru import logger
 from sklearn.datasets import load_breast_cancer
 from sklearn.utils import Bunch
 
+from src.config.logging_config import setup_logger
 from src.config.paths import RAW_DATA_PATH
 
 
@@ -47,6 +48,7 @@ def save_data(data: pd.DataFrame) -> None:
 
 def main() -> None:
     """Main function to orchestrate the data loading process."""
+    setup_logger()
     raw_data = fetch_data()
     save_data(raw_data)
     logger.info("Data loading completed")

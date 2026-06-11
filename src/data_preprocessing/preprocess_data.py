@@ -1,10 +1,10 @@
-import logging
-
 import joblib
 import pandas as pd
+from loguru import logger
 from sklearn.impute import SimpleImputer
 from sklearn.model_selection import train_test_split
 
+from src.config.logging_config import setup_logger
 from src.config.params import load_params
 from src.config.paths import (
     IMPUTER_PATH,
@@ -13,8 +13,6 @@ from src.config.paths import (
     TRAIN_PREPROCESSED_PATH,
     VAL_PREPROCESSED_PATH,
 )
-
-logger = logging.getLogger("src.data_preprocessing.preprocess_data")
 
 
 def load_data() -> pd.DataFrame:
@@ -122,6 +120,7 @@ def save_artifacts(
 
 def main() -> None:
     """Main function to orchestrate the preprocessing pipeline."""
+    setup_logger()
     raw_data = load_data()
     train_data, val_data, test_data = split_data(raw_data)
     train_processed, val_processed, test_processed, imputer = preprocess_data(

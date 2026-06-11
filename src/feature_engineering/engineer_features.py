@@ -1,9 +1,9 @@
-import logging
-
 import joblib
 import pandas as pd
+from loguru import logger
 from sklearn.preprocessing import StandardScaler
 
+from src.config.logging_config import setup_logger
 from src.config.paths import (
     SCALER_PATH,
     TEST_PREPROCESSED_PATH,
@@ -13,8 +13,6 @@ from src.config.paths import (
     VAL_PREPROCESSED_PATH,
     VAL_PROCESSED_PATH,
 )
-
-logger = logging.getLogger("src.feature_engineering.engineer_features")
 
 
 def load_preprocessed_data() -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
@@ -93,6 +91,7 @@ def save_artifacts(
 
 def main() -> None:
     """Main function to orchestrate feature engineering pipeline."""
+    setup_logger()
     train, val, test = load_preprocessed_data()
     train_processed, val_processed, test_processed, scaler = engineer_features(train, val, test)
     save_artifacts(train_processed, val_processed, test_processed, scaler)

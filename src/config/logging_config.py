@@ -5,15 +5,19 @@ from pathlib import Path
 
 from loguru import logger
 
+from src.config.paths import LOGS_DIR
 
-def setup_logger(log_level: str = "INFO", log_to_file: bool = True, log_dir: str = "logs") -> None:
+
+def setup_logger(
+    log_level: str = "INFO", log_to_file: bool = True, log_dir: Path = LOGS_DIR
+) -> None:
     """
     Configura o Loguru para todo o projeto.
 
     Args:
         log_level: Nível de log (DEBUG, INFO, WARNING, ERROR, CRITICAL)
         log_to_file: Se deve salvar logs em arquivo
-        log_dir: Diretório para salvar arquivos de log
+        log_dir: Diretório para salvar arquivos de log (default: LOGS_DIR do projeto)
     """
     # Remove handler padrão
     logger.remove()

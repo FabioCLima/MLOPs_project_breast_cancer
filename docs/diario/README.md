@@ -16,5 +16,6 @@ O objetivo é que um(a) cientista de dados ou ML engineer júnior consiga ler o 
 | [01](fase0-item01-runtime-python.md) | 1 | Runtime Python reprodutível | 10 |
 | [02](fase0-item02-03-leakage-e-corretude.md) | 2, 3 | Data leakage no validation split; estratificação; best epoch; sigmoid binária; teste de leakage | 4, 5, 6 |
 | [03](fase0-item04-paths-e-params.md) | 4 | Paths e params centralizados; independência de cwd | 2, 10 |
+| [04](fase0-item05-logging.md) | 5 | Logging único com loguru; observabilidade camada zero | 8, 10 |
 
 *(o índice cresce conforme os itens são entregues — veja a sequência completa no [ROADMAP.md](../../ROADMAP.md))*

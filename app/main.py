@@ -1,15 +1,14 @@
 import io
-import logging
 
 import joblib
 import pandas as pd
 from flask import Flask, render_template, request
+from loguru import logger
 from sklearn.datasets import load_breast_cancer
 from tensorflow.keras.models import load_model
 
+from src.config.logging_config import setup_logger
 from src.config.paths import IMPUTER_PATH, MODEL_PATH, SCALER_PATH
-
-logger = logging.getLogger("app.main")
 
 
 class ModelService:
@@ -103,6 +102,7 @@ def create_routes(app: Flask) -> None:
 
 
 # Create and configure Flask app at module level
+setup_logger()
 app = Flask(__name__)
 app.model_service = ModelService()
 create_routes(app)

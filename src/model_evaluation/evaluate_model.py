@@ -1,13 +1,12 @@
 import json
-import logging
 
 import pandas as pd
 import tensorflow as tf
+from loguru import logger
 from sklearn.metrics import classification_report, confusion_matrix
 
+from src.config.logging_config import setup_logger
 from src.config.paths import EVALUATION_METRICS_PATH, MODEL_PATH, TEST_PROCESSED_PATH
-
-logger = logging.getLogger("src.model_evaluation.evaluate_model")
 
 DECISION_THRESHOLD = 0.5
 
@@ -72,6 +71,7 @@ def evaluate_model(model: tf.keras.Model, X: pd.DataFrame, y_true: pd.Series) ->
 
 def main() -> None:
     """Main function to orchestrate the model evaluation process."""
+    setup_logger()
     model = load_model()
     X, y = load_test_data()
     evaluate_model(model, X, y)
