@@ -26,8 +26,7 @@ logs/
 # Artifacts
 artifacts/*.joblib
 
-# Metrics
-metrics/*.json
+# Metrics ficam no git (pequenas, e o dvc metrics diff usa o historico)
 
 # IDE
 .vscode/

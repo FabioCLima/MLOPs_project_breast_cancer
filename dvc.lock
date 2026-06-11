@@ -1,0 +1,138 @@
+schema: '2.0'
+stages:
+  load_data:
+    cmd: python -m src.data_loading.load_data
+    deps:
+    - path: src/data_loading/load_data.py
+      hash: md5
+      md5: c353f8323d9e0566c8bf65bf9b34ec38
+      size: 1592
+    outs:
+    - path: data/raw/raw.csv
+      hash: md5
+      md5: e1b6054b415ad8448f25838a532bfb3e
+      size: 116187
+  preprocess:
+    cmd: python -m src.data_preprocessing.preprocess_data
+    deps:
+    - path: data/raw/raw.csv
+      hash: md5
+      md5: e1b6054b415ad8448f25838a532bfb3e
+      size: 116187
+    - path: src/data_preprocessing/preprocess_data.py
+      hash: md5
+      md5: 5a28dc96f1354e20f8940e15c32ff277
+      size: 4437
+    params:
+      params.yaml:
+        preprocess_data:
+          test_size: 0.2
+          val_size: 0.2
+          random_seed: 42
+    outs:
+    - path: artifacts/features_mean_imputer.joblib
+      hash: md5
+      md5: 5415d4af8b634a27fba80a464d000d0b
+      size: 1511
+    - path: data/preprocessed/test_preprocessed.csv
+      hash: md5
+      md5: 9e4db067db17ab3d99843750b3b3574a
+      size: 26980
+    - path: data/preprocessed/train_preprocessed.csv
+      hash: md5
+      md5: f3cb9fa57c985c3eb91d22c7a87731b4
+      size: 84546
+    - path: data/preprocessed/val_preprocessed.csv
+      hash: md5
+      md5: 7de42fc1807a5334624019148d32bf68
+      size: 21631
+  features:
+    cmd: python -m src.feature_engineering.engineer_features
+    deps:
+    - path: data/preprocessed/test_preprocessed.csv
+      hash: md5
+      md5: 9e4db067db17ab3d99843750b3b3574a
+      size: 26980
+    - path: data/preprocessed/train_preprocessed.csv
+      hash: md5
+      md5: f3cb9fa57c985c3eb91d22c7a87731b4
+      size: 84546
+    - path: data/preprocessed/val_preprocessed.csv
+      hash: md5
+      md5: 7de42fc1807a5334624019148d32bf68
+      size: 21631
+    - path: src/feature_engineering/engineer_features.py
+      hash: md5
+      md5: 0b306bb46171cf233cb90792e6c53920
+      size: 3491
+    outs:
+    - path: artifacts/features_scaler.joblib
+      hash: md5
+      md5: 9dacde5f79ed9338cb7be4e11b0dda7b
+      size: 2135
+    - path: data/processed/test_processed.csv
+      hash: md5
+      md5: 2fcac676d25e161b97b5f5fe0b35865a
+      size: 67862
+    - path: data/processed/train_processed.csv
+      hash: md5
+      md5: 05db0127b75f10013917e5c52ae02ade
+      size: 215406
+    - path: data/processed/val_processed.csv
+      hash: md5
+      md5: 5ee9f40f2ffb0af687cc7145cfeea014
+      size: 54363
+  train:
+    cmd: python -m src.model_training.train_model
+    deps:
+    - path: data/processed/train_processed.csv
+      hash: md5
+      md5: 05db0127b75f10013917e5c52ae02ade
+      size: 215406
+    - path: data/processed/val_processed.csv
+      hash: md5
+      md5: 5ee9f40f2ffb0af687cc7145cfeea014
+      size: 54363
+    - path: src/model_training/train_model.py
+      hash: md5
+      md5: fb33f26b957433b7fa0b57cb93576ee4
+      size: 4639
+    params:
+      params.yaml:
+        train:
+          learning_rate: 0.001
+          hidden_layer_1_neurons: 64
+          hidden_layer_2_neurons: 32
+          dropout_rate: 0.3
+          epochs: 100
+          batch_size: 32
+          random_seed: 42
+    outs:
+    - path: metrics/training.json
+      hash: md5
+      md5: 490e33695fedcc9f348db08dda92b748
+      size: 162
+    - path: models/model.keras
+      hash: md5
+      md5: 7c178078132ff385df14f7a936dba159
+      size: 79016
+  evaluate:
+    cmd: python -m src.model_evaluation.evaluate_model
+    deps:
+    - path: data/processed/test_processed.csv
+      hash: md5
+      md5: 2fcac676d25e161b97b5f5fe0b35865a
+      size: 67862
+    - path: models/model.keras
+      hash: md5
+      md5: 7c178078132ff385df14f7a936dba159
+      size: 79016
+    - path: src/model_evaluation/evaluate_model.py
+      hash: md5
+      md5: c9c0c813e3d95e50560e13e6a7b71058
+      size: 2401
+    outs:
+    - path: metrics/evaluation.json
+      hash: md5
+      md5: 492160af3c04828a0d44fc695397e210
+      size: 836

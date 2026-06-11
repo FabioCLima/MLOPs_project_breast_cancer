@@ -1,0 +1,57 @@
+stages:
+  load_data:
+    cmd: python -m src.data_loading.load_data
+    deps:
+      - src/data_loading/load_data.py
+    outs:
+      - data/raw/raw.csv
+
+  preprocess:
+    cmd: python -m src.data_preprocessing.preprocess_data
+    deps:
+      - data/raw/raw.csv
+      - src/data_preprocessing/preprocess_data.py
+    params:
+      - preprocess_data
+    outs:
+      - data/preprocessed/train_preprocessed.csv
+      - data/preprocessed/val_preprocessed.csv
+      - data/preprocessed/test_preprocessed.csv
+      - artifacts/features_mean_imputer.joblib
+
+  features:
+    cmd: python -m src.feature_engineering.engineer_features
+    deps:
+      - data/preprocessed/train_preprocessed.csv
+      - data/preprocessed/val_preprocessed.csv
+      - data/preprocessed/test_preprocessed.csv
+      - src/feature_engineering/engineer_features.py
+    outs:
+      - data/processed/train_processed.csv
+      - data/processed/val_processed.csv
+      - data/processed/test_processed.csv
+      - artifacts/features_scaler.joblib
+
+  train:
+    cmd: python -m src.model_training.train_model
+    deps:
+      - data/processed/train_processed.csv
+      - data/processed/val_processed.csv
+      - src/model_training/train_model.py
+    params:
+      - train
+    outs:
+      - models/model.keras
+    metrics:
+      - metrics/training.json:
+          cache: false
+
+  evaluate:
+    cmd: python -m src.model_evaluation.evaluate_model
+    deps:
+      - models/model.keras
+      - data/processed/test_processed.csv
+      - src/model_evaluation/evaluate_model.py
+    metrics:
+      - metrics/evaluation.json:
+          cache: false
