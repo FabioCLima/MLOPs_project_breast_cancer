@@ -29,7 +29,14 @@ dev = [
     "pre-commit>=4.5.1",
     "pytest>=9.0.2",
     "ruff>=0.15.0",
+    "types-pyyaml>=6.0.12.20260518",
 ]
+
+[tool.mypy]
+python_version = "3.12"
+# Libs científicas (tensorflow, sklearn, joblib, pandas) não publicam stubs completos
+ignore_missing_imports = true
+check_untyped_defs = true
 
 [tool.ruff]
 # Compatível com Python 3.12+

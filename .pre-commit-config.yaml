@@ -18,3 +18,13 @@ repos:
         args: ['--maxkb=500']
       - id: check-merge-conflict
       - id: detect-private-key
+
+  # Mypy - checagem de tipos (usa o ambiente do projeto via uv)
+  - repo: local
+    hooks:
+      - id: mypy
+        name: mypy
+        entry: uv run mypy src/ app/
+        language: system
+        types: [python]
+        pass_filenames: false
