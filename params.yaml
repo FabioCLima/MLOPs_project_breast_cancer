@@ -11,3 +11,9 @@ preprocess_data:
   test_size: 0.2
   val_size: 0.2
   random_seed: 42
+
+evaluate:
+  # Gate de promocao: recall minimo da classe maligna para o modelo
+  # receber o alias "production" no registry (falso negativo e o erro
+  # mais caro no contexto clinico)
+  min_malignant_recall: 0.95

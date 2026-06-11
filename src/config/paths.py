@@ -39,6 +39,7 @@ SCALER_PATH = ARTIFACTS_DIR / "features_scaler.joblib"
 
 # Modelo e métricas
 MODEL_PATH = MODELS_DIR / "model.keras"
+MLFLOW_RUN_ID_PATH = ARTIFACTS_DIR / "mlflow_run_id.txt"
 TRAINING_METRICS_PATH = METRICS_DIR / "training.json"
 EVALUATION_METRICS_PATH = METRICS_DIR / "evaluation.json"
 

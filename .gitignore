@@ -40,3 +40,8 @@ Thumbs.db
 
 # Pre-commit
 .secrets.baseline
+
+# MLflow (tracking local)
+mlflow.db
+mlruns/
+mlartifacts/

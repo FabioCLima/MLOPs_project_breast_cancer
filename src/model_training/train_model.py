@@ -1,5 +1,6 @@
 import json
 
+import mlflow
 import numpy as np
 import pandas as pd
 import tensorflow as tf
@@ -12,11 +13,15 @@ from tensorflow.keras.optimizers import Adam
 from src.config.logging_config import setup_logger
 from src.config.params import load_params
 from src.config.paths import (
+    IMPUTER_PATH,
+    MLFLOW_RUN_ID_PATH,
     MODEL_PATH,
+    SCALER_PATH,
     TRAIN_PROCESSED_PATH,
     TRAINING_METRICS_PATH,
     VAL_PROCESSED_PATH,
 )
+from src.config.tracking import REGISTERED_MODEL_NAME, setup_mlflow
 from src.data_validation.schemas import PROCESSED_SCHEMA, validate
 
 
@@ -109,24 +114,46 @@ def train_model(
     # Early stopping to prevent overfitting
     early_stopping = EarlyStopping(monitor="val_loss", patience=10, restore_best_weights=True)
 
-    # Train the model with the explicit validation set
-    logger.info("Training model...")
-    history = model.fit(
-        X_train,
-        y_train,
-        validation_data=(X_val, y_val),
-        epochs=params["epochs"],
-        batch_size=params["batch_size"],
-        callbacks=[early_stopping],
-    )
+    setup_mlflow()
+    with mlflow.start_run(run_name="train-keras-mlp") as run:
+        mlflow.log_params(params)
 
-    save_training_artifacts(model)
+        # Train the model with the explicit validation set
+        logger.info("Training model...")
+        history = model.fit(
+            X_train,
+            y_train,
+            validation_data=(X_val, y_val),
+            epochs=params["epochs"],
+            batch_size=params["batch_size"],
+            callbacks=[early_stopping],
+        )
 
-    # Report metrics from the best epoch — the one whose weights were restored —
-    # so the saved model and the reported metrics refer to the same state.
-    best_epoch = int(np.argmin(history.history["val_loss"]))
-    metrics = {metric: float(values[best_epoch]) for metric, values in history.history.items()}
-    metrics["best_epoch"] = best_epoch
+        save_training_artifacts(model)
+
+        # Curvas completas por época (UI do MLflow plota a evolução)
+        for metric, values in history.history.items():
+            for epoch, value in enumerate(values):
+                mlflow.log_metric(metric, float(value), step=epoch)
+
+        # Report metrics from the best epoch — the one whose weights were restored —
+        # so the saved model and the reported metrics refer to the same state.
+        best_epoch = int(np.argmin(history.history["val_loss"]))
+        metrics = {metric: float(values[best_epoch]) for metric, values in history.history.items()}
+        metrics["best_epoch"] = best_epoch
+        mlflow.log_metrics({f"best_{k}": v for k, v in metrics.items()})
+
+        # Modelo + artefatos de preprocessing na mesma run (lineage completo)
+        mlflow.tensorflow.log_model(
+            model, name="model", registered_model_name=REGISTERED_MODEL_NAME
+        )
+        mlflow.log_artifact(str(IMPUTER_PATH), artifact_path="preprocessing")
+        mlflow.log_artifact(str(SCALER_PATH), artifact_path="preprocessing")
+
+        # Persiste o run_id para o estágio de avaliação anexar métricas à mesma run
+        MLFLOW_RUN_ID_PATH.parent.mkdir(parents=True, exist_ok=True)
+        MLFLOW_RUN_ID_PATH.write_text(run.info.run_id)
+
     TRAINING_METRICS_PATH.parent.mkdir(parents=True, exist_ok=True)
     with open(TRAINING_METRICS_PATH, "w") as f:
         json.dump(metrics, f, indent=2)

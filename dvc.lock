@@ -21,7 +21,7 @@ stages:
       size: 116187
     - path: src/data_preprocessing/preprocess_data.py
       hash: md5
-      md5: 6bee5905e0c5f11565a186180bc9c643
+      md5: b35146bff78aba8839b87ea2e1c43f91
       size: 4540
     params:
       params.yaml:
@@ -63,8 +63,8 @@ stages:
       size: 21631
     - path: src/feature_engineering/engineer_features.py
       hash: md5
-      md5: 7ab87523a97337a1a4b26fa5c7559f7f
-      size: 3722
+      md5: 37f76f46c3abb5821ec996e7cbac15d2
+      size: 3708
     outs:
     - path: artifacts/features_scaler.joblib
       hash: md5
@@ -95,8 +95,8 @@ stages:
       size: 54363
     - path: src/model_training/train_model.py
       hash: md5
-      md5: 65cfd862fc40be717eb0fa261cb1d29b
-      size: 4792
+      md5: 0cdd9403092884774064a4fe128fee22
+      size: 6006
     params:
       params.yaml:
         train:
@@ -108,29 +108,41 @@ stages:
           batch_size: 32
           random_seed: 42
     outs:
+    - path: artifacts/mlflow_run_id.txt
+      hash: md5
+      md5: 694f308032d60a07f90590a312ccf9ed
+      size: 32
     - path: metrics/training.json
       hash: md5
       md5: 490e33695fedcc9f348db08dda92b748
       size: 162
     - path: models/model.keras
       hash: md5
-      md5: ef9a7749e993ecac82f3b7fa514d2e80
+      md5: b0519c0d6092910f23f07f3303fe96da
       size: 79016
   evaluate:
     cmd: python -m src.model_evaluation.evaluate_model
     deps:
+    - path: artifacts/mlflow_run_id.txt
+      hash: md5
+      md5: 694f308032d60a07f90590a312ccf9ed
+      size: 32
     - path: data/processed/test_processed.csv
       hash: md5
       md5: 2fcac676d25e161b97b5f5fe0b35865a
       size: 67862
     - path: models/model.keras
       hash: md5
-      md5: ef9a7749e993ecac82f3b7fa514d2e80
+      md5: b0519c0d6092910f23f07f3303fe96da
       size: 79016
     - path: src/model_evaluation/evaluate_model.py
       hash: md5
-      md5: 58620e2646436a9ad1affcaacfeb21cd
-      size: 2514
+      md5: cef696f23429394d013ac9251d0f0732
+      size: 4567
+    params:
+      params.yaml:
+        evaluate:
+          min_malignant_recall: 0.95
     outs:
     - path: metrics/evaluation.json
       hash: md5

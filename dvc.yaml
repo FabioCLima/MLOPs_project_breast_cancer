@@ -42,6 +42,8 @@ stages:
       - train
     outs:
       - models/model.keras
+      - artifacts/mlflow_run_id.txt:
+          cache: false
     metrics:
       - metrics/training.json:
           cache: false
@@ -50,8 +52,11 @@ stages:
     cmd: python -m src.model_evaluation.evaluate_model
     deps:
       - models/model.keras
+      - artifacts/mlflow_run_id.txt
       - data/processed/test_processed.csv
       - src/model_evaluation/evaluate_model.py
+    params:
+      - evaluate
     metrics:
       - metrics/evaluation.json:
           cache: false
