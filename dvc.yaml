@@ -66,10 +66,13 @@ stages:
     deps:
       - models/model.keras
       - artifacts/mlflow_run_id.txt
+      - data/processed/val_processed.csv
       - data/processed/test_processed.csv
       - src/model_evaluation/evaluate_model.py
     params:
       - evaluate
+    outs:
+      - metrics/plots
     metrics:
       - metrics/evaluation.json:
           cache: false

@@ -27,3 +27,6 @@ evaluate:
   # receber o alias "production" no registry (falso negativo e o erro
   # mais caro no contexto clinico)
   min_malignant_recall: 0.95
+  # Threshold tuning (feito na VALIDACAO, nunca no teste): maximizar o
+  # recall da classe maligna mantendo a precision acima deste minimo
+  min_malignant_precision: 0.90

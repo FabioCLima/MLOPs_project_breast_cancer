@@ -110,7 +110,7 @@ stages:
     outs:
     - path: artifacts/mlflow_run_id.txt
       hash: md5
-      md5: 694f308032d60a07f90590a312ccf9ed
+      md5: a6f66e20415e3927c63fe46d05150ab6
       size: 32
     - path: metrics/training.json
       hash: md5
@@ -118,36 +118,46 @@ stages:
       size: 162
     - path: models/model.keras
       hash: md5
-      md5: b0519c0d6092910f23f07f3303fe96da
+      md5: c9667f243a126051cb7b029dd563be08
       size: 79016
   evaluate:
     cmd: python -m src.model_evaluation.evaluate_model
     deps:
     - path: artifacts/mlflow_run_id.txt
       hash: md5
-      md5: 694f308032d60a07f90590a312ccf9ed
+      md5: a6f66e20415e3927c63fe46d05150ab6
       size: 32
     - path: data/processed/test_processed.csv
       hash: md5
       md5: 2fcac676d25e161b97b5f5fe0b35865a
       size: 67862
+    - path: data/processed/val_processed.csv
+      hash: md5
+      md5: 5ee9f40f2ffb0af687cc7145cfeea014
+      size: 54363
     - path: models/model.keras
       hash: md5
-      md5: b0519c0d6092910f23f07f3303fe96da
+      md5: c9667f243a126051cb7b029dd563be08
       size: 79016
     - path: src/model_evaluation/evaluate_model.py
       hash: md5
-      md5: cef696f23429394d013ac9251d0f0732
-      size: 4567
+      md5: 36492c2b605668ab932204b7d91f51ae
+      size: 9785
     params:
       params.yaml:
         evaluate:
           min_malignant_recall: 0.95
+          min_malignant_precision: 0.9
     outs:
     - path: metrics/evaluation.json
       hash: md5
-      md5: 492160af3c04828a0d44fc695397e210
-      size: 836
+      md5: e4dc2c5829a120bad5e5cd36b15d3fca
+      size: 973
+    - path: metrics/plots
+      hash: md5
+      md5: 12eed12ceda3d7ef31a2dc224aec8dd7.dir
+      size: 116501
+      nfiles: 4
   baselines:
     cmd: python -m src.model_training.train_baselines
     deps:
